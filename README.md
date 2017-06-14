@@ -2,6 +2,8 @@
 
 Opinionated and object-oriented wrapper for GLFW in Crystal.
 
+CrystGLFW wraps [LibGLFW](https://github.com/calebuharrison/LibGLFW), which offers bindings for the [full GLFW specification](http://www.glfw.org/docs/latest/glfw3_8h.html).
+
 ## Installation
 
 Add this to your application's `shard.yml`:
