@@ -3,7 +3,6 @@ require "lib_glfw"
 module CrystGLFW
   # An Image object wraps an underlying GLFW Image and exposes its attributes.
   struct Image
-
     @image : LibGLFW::Image
 
     # Create a new image for use as a Cursor image or a Window icon.
@@ -18,7 +17,7 @@ module CrystGLFW
     # - *width*, the width of the image, in pixels.
     # - *height*, the height of the image, in pixels.
     # - *pixels*, the pixel data, given left-to-right, top-to-bottom.
-    # 
+    #
     # NOTE: This method may be called outside a `CrystGLFW#run` block defintion without triggering an error.
     def initialize(width : Number, height : Number, pixels : Array(Number))
       @image = LibGLFW::Image.new

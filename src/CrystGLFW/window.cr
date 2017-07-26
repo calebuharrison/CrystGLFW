@@ -82,7 +82,7 @@ module CrystGLFW
     # To specify hints for window creation, create a hash:
     #
     # ```
-    # hints = { :client_api => :opengl_es_api, :context_version_major => 3 }
+    # hints = {:client_api => :opengl_es_api, :context_version_major => 3}
     # window = CrystGLFW::Window.new(title: "My Window", monitor: CrystGLFW::Monitor.primary, hints: hints)
     # ```
     #
@@ -184,7 +184,7 @@ module CrystGLFW
     # Returns the position of the window, in screen coordinates, as a named tuple.
     #
     # ```
-    # pos = window.position 
+    # pos = window.position
     # puts "The window's top left corner is at (#{pos[:x]}, #{pos[:y]})."
     # ```
     #
@@ -235,7 +235,7 @@ module CrystGLFW
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def size : NamedTuple(width: Number, height: Number)
       LibGLFW.get_window_size @handle, out width, out height
-      { width: width, height: height }
+      {width: width, height: height}
     end
 
     # Sets the size of the window.
@@ -279,7 +279,7 @@ module CrystGLFW
     #
     # # Get the top left corner coordinates.
     # tl = c[:top_left]
-    # 
+    #
     # # Print the coordinates.
     # puts "Top Left: (#{tl[:x]}, #{tl[:y]})" # => "Top Left: (100, 100)"
     # ```
@@ -288,15 +288,15 @@ module CrystGLFW
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def corners : NamedTuple(top_left: NamedTuple(x: Number, y: Number),
-                             top_right: NamedTuple(x: Number, y: Number),
-                             bottom_left: NamedTuple(x: Number, y: Number),
-                             bottom_right: NamedTuple(x: Number, y: Number))
+    top_right: NamedTuple(x: Number, y: Number),
+    bottom_left: NamedTuple(x: Number, y: Number),
+    bottom_right: NamedTuple(x: Number, y: Number))
       p, s = position, size
       tl = p
-      br = { x: (tl[:x] + s[:width]), y: (tl[:y] + s[:height]) }
-      tr = { x: br[:x], y: tl[:y] }
-      bl = { x: tl[:x], y: br[:y] }
-      { top_left: tl, top_right: tr, bottom_right: br, bottom_left: bl }
+      br = {x: (tl[:x] + s[:width]), y: (tl[:y] + s[:height])}
+      tr = {x: br[:x], y: tl[:y]}
+      bl = {x: tl[:x], y: br[:y]}
+      {top_left: tl, top_right: tr, bottom_right: br, bottom_left: bl}
     end
 
     # Returns true if the window contains the given coordinates. False otherwise.
@@ -381,9 +381,9 @@ module CrystGLFW
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def size_limits=(limits : NamedTuple(min_width: Number, min_height: Number,
-                                         max_width: Number, max_height: Number))
-      LibGLFW.set_window_size_limits @handle, limits[:min_width], limits[:min_height], 
-                                              limits[:max_width], limits[:max_height]
+                     max_width: Number, max_height: Number))
+      LibGLFW.set_window_size_limits @handle, limits[:min_width], limits[:min_height],
+        limits[:max_width], limits[:max_height]
     end
 
     # Sets the aspect ratio of the window.
@@ -430,7 +430,7 @@ module CrystGLFW
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def framebuffer_size : NamedTuple(width: Number, height: Number)
       LibGLFW.get_framebuffer_size @handle, out width, out height
-      { width: width, height: height }
+      {width: width, height: height}
     end
 
     # Returns the size of the window's frame at each of its edges in screen coordinates.
@@ -513,7 +513,7 @@ module CrystGLFW
     # ```
     # monitor = Monitor.primary
     # unless window.full_screen?
-    #   window.set_monitor monitor 
+    #   window.set_monitor monitor
     # end
     # ```
     #
@@ -526,7 +526,7 @@ module CrystGLFW
     def set_monitor(monitor : CrystGLFW::Monitor)
       video_mode = monitor.video_mode
       LibGLFW.set_window_monitor @handle, monitor, CrystGLFW[:dont_care], CrystGLFW[:dont_care],
-                                          video_mode.width, video_mode.height, video_mode.refresh_rate
+        video_mode.width, video_mode.height, video_mode.refresh_rate
     end
 
     # Alternate syntax for `#set_monitor`
@@ -535,7 +535,7 @@ module CrystGLFW
     def monitor=(monitor : CrystGLFW::Monitor)
       video_mode = monitor.video_mode
       LibGLFW.set_window_monitor @handle, monitor, CrystGLFW[:dont_care], CrystGLFW[:dont_care],
-                                          video_mode.width, video_mode.height, video_mode.refresh_rate
+        video_mode.width, video_mode.height, video_mode.refresh_rate
     end
 
     # Exits full screen mode and enters windowed mode with the given settings.
@@ -632,7 +632,7 @@ module CrystGLFW
     # cursor = Cursor.new(:hand_cursor)
     # window.set_cursor cursor
     # ```
-    # 
+    #
     # This method accepts the following arguments:
     # - *cursor*, the window's new cursor.
     #
@@ -658,7 +658,7 @@ module CrystGLFW
     def remove_cursor
       LibGLFW.set_cursor @handle, nil
     end
-    
+
     # Returns the cursor's position relative to the window's position.
     #
     # ```
@@ -709,7 +709,7 @@ module CrystGLFW
       LibGLFW.set_cursor_pos @handle, pos[:x], pos[:y]
     end
 
-    # Returns the current cursor mode's label. 
+    # Returns the current cursor mode's label.
     #
     # ```
     # case window.cursor_mode
@@ -787,7 +787,7 @@ module CrystGLFW
     def enable_sticky_mouse_buttons
       LibGLFW.set_input_mode @handle, CrystGLFW[:sticky_mouse_buttons], CrystGLFW[:true]
     end
-    
+
     # Disables sticky mouse buttons.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
@@ -851,7 +851,7 @@ module CrystGLFW
     #   window.swap_buffers
     # end
     # ```
-    # 
+    #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def swap_buffers
       LibGLFW.swap_buffers @handle

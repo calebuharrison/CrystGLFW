@@ -39,9 +39,9 @@ module CrystGLFW
     #
     # ```
     # monitors = CrystGLFW::Monitor.all
-    # monitors.each {|m| puts m.name} # Prints out the name of each connected monitor.
+    # monitors.each { |m| puts m.name } # Prints out the name of each connected monitor.
     # ```
-    # 
+    #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def self.all : Array(Monitor)
       handles = LibGLFW.get_monitors(out count)
@@ -72,7 +72,7 @@ module CrystGLFW
     # monitors = CrystGLFW::Monitors.all
     #
     # # Find the monitor that is furthest to the left.
-    # leftmost_monitor = monitors.min_by {|monitor| monitor.position[:x]}
+    # leftmost_monitor = monitors.min_by { |monitor| monitor.position[:x] }
     # ```
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
@@ -106,7 +106,7 @@ module CrystGLFW
     # # Retrieve the primary monitor.
     # monitor = CrystGLFW::Monitor.primary
     #
-    # # Print out the name of the monitor. 
+    # # Print out the name of the monitor.
     # puts "The name of the primary monitor is #{monitor.name}"
     # ```
     #
@@ -188,7 +188,7 @@ module CrystGLFW
     def to_unsafe : Pointer(LibGLFW::Monitor)
       @handle
     end
-    
+
     set_toggle_connection_callback
   end
 end

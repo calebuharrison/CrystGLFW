@@ -1,7 +1,6 @@
 module CrystGLFW
   # A key represents a physical key on the keyboard.
   struct Key
-
     # All of the key-specific labels defined as constants.
     @@labels : Array(Symbol) = CrystGLFW.constants.keys.select { |label| label.to_s.starts_with?("key") }
 
@@ -72,7 +71,7 @@ module CrystGLFW
     # This method accepts the following arguments:
     # - *labels*, any number of labels against which the key will be checked.
     def is?(*labels : Symbol) : Bool
-      maybe_label = labels.find {|label| @code == CrystGLFW[label]}
+      maybe_label = labels.find { |label| @code == CrystGLFW[label] }
       !maybe_label.nil?
     end
 

@@ -2,7 +2,6 @@ module CrystGLFW
   module Event
     # Represents an event wherein a joystick is either connected or disconnected from the system.
     struct JoystickToggleConnection < Any
-
       getter joystick : CrystGLFW::Joystick
 
       # :nodoc:

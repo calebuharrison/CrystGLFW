@@ -2,7 +2,6 @@ module CrystGLFW
   module Event
     # Represents an event wherein a monitor is either connected or disconnected from the system.
     struct MonitorToggleConnection < Any
-
       getter monitor : CrystGLFW::Monitor
 
       # :nodoc:

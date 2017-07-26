@@ -3,7 +3,6 @@ require "lib_glfw"
 module CrystGLFW
   # A VideoMode object wraps an underlying GLFW Vidmode and exposes its attributes.
   struct VideoMode
-
     # :nodoc:
     def initialize(handle : Pointer(LibGLFW::Vidmode))
       @handle = handle

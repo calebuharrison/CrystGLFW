@@ -1,7 +1,6 @@
 module CrystGLFW
   # A MouseButton represents a button on a mouse.
   struct MouseButton
-
     # All of the mouse button labels defined as constants.
     @@labels : Array(Symbol) = CrystGLFW.constants.keys.select { |label| label.to_s.starts_with?("mouse_button") }
 
@@ -39,7 +38,7 @@ module CrystGLFW
     # This method accepts the following arguments:
     # - *labels, any number of labels against which the mouse button will be checked.
     def is?(*labels : Symbol) : Bool
-      maybe_label = labels.find {|label| @code == CrystGLFW[label]}
+      maybe_label = labels.find { |label| @code == CrystGLFW[label] }
       !maybe_label.nil?
     end
 

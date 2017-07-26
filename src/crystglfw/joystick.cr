@@ -30,8 +30,8 @@ module CrystGLFW
     private def self.set_joystick_callback
       callback = LibGLFW::Joystickfun.new do |code, connected_code|
         joystick = Joystick.new(code)
-        connected = connected_code == CrystGLFW[:connected] 
-        event = Event::JoystickToggleConnection.new(joystick, connected) 
+        connected = connected_code == CrystGLFW[:connected]
+        event = Event::JoystickToggleConnection.new(joystick, connected)
         @@joystick_callback.try &.call(event)
       end
     end
@@ -125,7 +125,7 @@ module CrystGLFW
     # This method accepts the following arguments:
     # - *labels*, any number of labels against which the joystick will be matched.
     def is?(*labels : Symbol) : Bool
-      maybe_label = labels.find {|label| @code == CrystGLFW[label]}
+      maybe_label = labels.find { |label| @code == CrystGLFW[label] }
       !maybe_label.nil?
     end
 
