@@ -1,16 +1,11 @@
 module CrystGLFW
   # A Joystick object wraps an underlying GLFW joystick and exposes its attributes.
   struct Joystick
-    alias ConnectionChangeCallback = Proc(Joystick, Nil)
-    alias JoystickCallback = ConnectionChangeCallback | Nil
+    alias ToggleConnectionCallback = Proc(Event::JoystickToggleConnection, Nil)
+    alias JoystickCallback = ToggleConnectionCallback | Nil
 
     @@joystick_callback : JoystickCallback
     @@labels : Array(Symbol) = CrystGLFW.constants.keys.select { |label| label.to_s.starts_with?("joystick") }
-
-    # Returns an array of Symbols that reference GLFW joysticks.
-    def self.labels
-      @@labels
-    end
 
     # Defines the behavior that gets triggered when a joystick is either connected or disconnected.
     #
@@ -19,23 +14,25 @@ module CrystGLFW
     # disconnected is yielded to the block.
     #
     # ```
-    # CrystGLFW::Joystick.on_connection_change do |joystick|
-    #   if joystick.connected?
-    #     puts "A new joystick has been connected: #{joystick.name}"
+    # CrystGLFW::Joystick.on_toggle_connection do |event|
+    #   if event.connected?
+    #     puts "A new joystick has been connected: #{event.joystick.name}"
     #   else
-    #     puts "A joystick has been disconnected: #{joystick.name}"
+    #     puts "A joystick has been disconnected: #{event.joystick.name}"
     #   end
     # end
     # ```
-    def self.on_connection_change(&callback)
+    def self.on_toggle_connection(&callback)
       @@joystick_callback = callback
     end
 
     # Sets the immutable joystick callback shim.
     private def self.set_joystick_callback
-      callback = LibGLFW::Joystickfun.new do |code, connected?|
+      callback = LibGLFW::Joystickfun.new do |code, connected_code|
         joystick = Joystick.new(code)
-        @@joystick_callback.try &.call(joystick)
+        connected = connected_code == CrystGLFW[:connected] 
+        event = Event::JoystickToggleConnection.new(joystick, connected) 
+        @@joystick_callback.try &.call(event)
       end
     end
 
@@ -70,7 +67,7 @@ module CrystGLFW
     #   puts "The value of axis #{i} is #{axis}"
     # end
     # ```
-    def axes
+    def axes : Array(Number)
       axis_array = LibGLFW.get_joystick_axes(@code, out count)
       Slice.new(axis_array, count).to_a
     end
@@ -83,7 +80,7 @@ module CrystGLFW
     #   puts "button #{i} is pressed!" if button == :press
     # end
     # ```
-    def buttons
+    def buttons : Array(Symbol)
       buttons = LibGLFW.get_joystick_buttons(@code, out count)
       button_array = Slice.new(buttons, count).to_a
       button_states = button_array.map { |button| button == CrystGLFW[:press] ? :press : :release }
@@ -101,7 +98,7 @@ module CrystGLFW
     #   end
     # end
     # ```
-    def connected?
+    def connected? : Bool
       LibGLFW.joystick_present(@code) == CrystGLFW[:true]
     end
 
@@ -115,14 +112,25 @@ module CrystGLFW
     # end
     # ```
     #
+    # Also accepts multiple labels and returns true if the joystick is matched by any of them.
+    #
+    # ```
+    # CrystGLFW::Joystick.on_connection_change do |event|
+    #   if event.joystick.is? :joystick_1, :joystick_2, :joystick_3, :joystick_4
+    #     puts "One of the first four joystick slots has been used."
+    #   end
+    # end
+    # ```
+    #
     # This method accepts the following arguments:
-    # - *label*, the Symbol that identifies the virtual GLFW joystick slot.
-    def is?(label : Symbol)
-      @code == CrystGLFW[label]
+    # - *labels*, any number of labels against which the joystick will be matched.
+    def is?(*labels : Symbol) : Bool
+      maybe_label = labels.find {|label| @code == CrystGLFW[label]}
+      !maybe_label.nil?
     end
 
     # Retrieves the joystick's default name if the joystick is connected.
-    private def joystick_name
+    private def joystick_name : String | Nil
       joy_name = LibGLFW.get_joystick_name(@code)
       if joy_name
         String.new(joy_name)

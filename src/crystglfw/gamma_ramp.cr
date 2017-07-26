@@ -15,7 +15,7 @@ module CrystGLFW
     # gamma_ramp = monitor.gamma_ramp
     # gamma_ramp.red
     # ```
-    def red : Array(UInt16)
+    def red : Array(Number)
       Slice.new(gamma_ramp.red, size).to_a
     end
 
@@ -26,7 +26,7 @@ module CrystGLFW
     # gamma_ramp = monitor.gamma_ramp
     # gamma_ramp.green
     # ```
-    def green : Array(UInt16)
+    def green : Array(Number)
       Slice.new(gamma_ramp.green, size).to_a
     end
 
@@ -37,7 +37,7 @@ module CrystGLFW
     # gamma_ramp = monitor.gamma_ramp
     # gamma_ramp.blue
     # ```
-    def blue : Array(UInt16)
+    def blue : Array(Number)
       Slice.new(gamma_ramp.blue, size).to_a
     end
 
@@ -48,7 +48,7 @@ module CrystGLFW
     # gamma_ramp = monitor.gamma_ramp
     # gamma_ramp.size
     # ```
-    def size : UInt32
+    def size : Number
       gamma_ramp.size
     end
 

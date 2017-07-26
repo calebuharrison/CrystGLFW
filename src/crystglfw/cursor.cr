@@ -42,7 +42,7 @@ module CrystGLFW
     # - *y*, the y-coordinate of the Cursor object's hotspot.
     #
     # NOTE: This method must be called inside a `CrystGLFW#run` block definition.
-    def initialize(image : Image, x : Int32, y : Int32)
+    def initialize(image : Image, x : Number, y : Number)
       @handle = LibGLFW.create_cursor(image, x, y)
     end
 

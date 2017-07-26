@@ -27,10 +27,10 @@ module CrystGLFW
     # - *error_code*, the code yielded by `CrystGLFW#on_error'
     #
     # NOTE: This method may be called outside a `#run` block definition without triggering an error.
-    def self.generate(error_code : Int32)
+    def self.generate(error_code : Int32) : Error::Any
       error_label = @@labels_and_types.keys.find { |label| error_code == CrystGLFW.constants[label] }
       error_type = @@labels_and_types[error_label.as(Symbol)]
-      error_type.new(error_code)
+      error_type.new error_code
     end
   end
 end

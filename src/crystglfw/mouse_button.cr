@@ -38,7 +38,7 @@ module CrystGLFW
     #
     # This method accepts the following arguments:
     # - *labels, any number of labels against which the mouse button will be checked.
-    def is?(*labels : Symbol)
+    def is?(*labels : Symbol) : Bool
       maybe_label = labels.find {|label| @code == CrystGLFW[label]}
       !maybe_label.nil?
     end

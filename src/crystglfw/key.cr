@@ -33,7 +33,7 @@ module CrystGLFW
     #   puts key.name if key.printable?
     # end
     # ```
-    def printable?
+    def printable? : Bool
       label = @@printable_key_labels.find { |label| @code == CrystGLFW[label] }
       !label.nil?
     end
@@ -43,7 +43,7 @@ module CrystGLFW
       @scancode == other.scancode
     end
 
-    # Returns true if the key's label matches the given label. False otherwise.
+    # Returns true if the key is referenced by the given label. False otherwise.
     #
     # ```
     # window.on_key do |key_event|
@@ -71,18 +71,18 @@ module CrystGLFW
     #
     # This method accepts the following arguments:
     # - *labels*, any number of labels against which the key will be checked.
-    def is?(*labels : Symbol)
+    def is?(*labels : Symbol) : Bool
       maybe_label = labels.find {|label| @code == CrystGLFW[label]}
       !maybe_label.nil?
     end
 
     # :nodoc:
-    def to_unsafe
+    def to_unsafe : Int32
       @code
     end
 
     # Returns the key's name.
-    private def key_name
+    private def key_name : String
       String.new(LibGLFW.get_key_name(@code, @scancode))
     end
   end

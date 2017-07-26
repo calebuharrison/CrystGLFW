@@ -68,7 +68,7 @@ module CrystGLFW
   #
   # NOTE: This method may be called outside a `#run` block definition without
   # triggering an error.
-  def self.version
+  def self.version : NamedTuple(major: Int32, minor: Int32, rev: Int32)
     LibGLFW.get_version(out major, out minor, out rev)
     {major: major, minor: minor, rev: rev}
   end
@@ -81,7 +81,7 @@ module CrystGLFW
   #
   # NOTE: This method may be called outside a `#run` block definition without
   # triggering an error.
-  def self.version_string
+  def self.version_string : String
     String.new(LibGLFW.get_version_string)
   end
 
@@ -92,7 +92,7 @@ module CrystGLFW
   # ```
   #
   # NOTE: This method must be called inside a `#run` block definition.
-  def self.time
+  def self.time : Number
     LibGLFW.get_time
   end
 
@@ -102,24 +102,38 @@ module CrystGLFW
   # - *t*, the new time.
   #
   # ```
-  # CrystGLFW.time = 1.0
+  # CrystGLFW.set_time 1.0
   # CrystGLFW.time # => 1.0
   # ```
   #
   # NOTE: This method must be called inside a `#run` block definition.
-  def self.time=(t : Float64)
+  def self.set_time(t : Number)
     LibGLFW.set_time t
   end
 
-  # Returns the current value of the raw timer, measured in
-  # 1 / `#timer_frequency` seconds.
+  # Alternate syntax for `#set_time`.
+  #
+  # This method accepts the following arguments:
+  # - *t*, the new time.
+  #
+  # ```
+  # CrystGLFW.time = 1.0
+  # CrystGLFW.time # => 1.0
+  # ```
+  #
+  # NOTE: This method must be called from within a `#run` block definition.
+  def self.time=(t : Number)
+    LibGLFW.set_time t
+  end
+
+  # Returns the current value of the raw timer, measured in 1 / `#timer_frequency` seconds.
   #
   # ```
   # CrystGLFW.timer_value # => 754_104_002_009_408
   # ```
   #
   # NOTE: This method must be called inside a `#run` block definition.
-  def self.timer_value
+  def self.timer_value : Number
     LibGLFW.get_timer_value
   end
 
@@ -130,7 +144,7 @@ module CrystGLFW
   # ```
   #
   # NOTE: This method must be called inside a `#run` block definition.
-  def self.timer_frequency
+  def self.timer_frequency : Number
     LibGLFW.get_timer_frequency
   end
 
@@ -191,7 +205,7 @@ module CrystGLFW
   #
   # NOTE: This method must be called inside a `#run` block definition.
   # NOTE: This method must not be called from within a callback.
-  def self.wait_events(timeout : Float64)
+  def self.wait_events(timeout : Number)
     LibGLFW.wait_events_timeout(timeout)
   end
 
@@ -215,76 +229,4 @@ module CrystGLFW
   end
 
   set_error_callback
-end
-
-CrystGLFW.run do
-  window = CrystGLFW::Window.new(title: "Example Window")
-
-  cursor = CrystGLFW::Cursor.new(:hand_cursor)
-  window.cursor = cursor
-
-  window.on_close do
-    puts "bye!"
-  end
-
-  window.on_move do |x, y|
-    puts "window moved to (#{x}, #{y})"
-    puts window.edges
-  end
-
-  window.on_resize do |width, height|
-    puts "window resized to #{width} x #{height}"
-  end
-
-  window.on_framebuffer_resize do |width, height|
-    puts "framebuffer resized to #{width} x #{height}"
-  end
-
-  window.on_cursor_move do |x, y|
-    puts "(#{x}, #{y})" if window.contains? x, y
-  end
-
-  window.on_toggle_focus do
-    if window.focused?
-      puts "I am now focused!"
-    else
-      puts "Why have you forsaken me?"
-    end
-  end
-
-  window.on_cursor_cross_threshold do
-    cp = window.cursor_position
-    puts "Cursor position: #{cp}"
-    puts "Cursor in window? #{window.contains? **cp}"
-  end
-
-  window.on_key do |key_event|
-    # puts key_event.key.name if key_event.key.printable? && key_event.press?
-  end
-
-  window.on_char do |char_event|
-    puts char_event.char
-  end
-
-  window.on_mouse_button do |mbe|
-    puts "Action: #{mbe.action}" if mbe.mouse_button.is? :mouse_button_right
-  end
-
-  window.on_scroll do |x, y|
-    puts "x: #{x}, y: #{y}"
-  end
-
-  window.on_file_drop do |paths|
-    paths.each { |p| puts p }
-  end
-
-  monitor = CrystGLFW::Monitor.primary
-  puts monitor.gamma_ramp.red
-
-  until window.should_close?
-    CrystGLFW.wait_events
-    window.swap_buffers
-  end
-
-  window.destroy
 end

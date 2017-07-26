@@ -3,16 +3,36 @@ require "lib_glfw"
 module CrystGLFW
   # A Monitor represents a physical monitor connected to the system.
   struct Monitor
-    alias ConnectionChangeCallback = Proc(Symbol, Nil)
-    alias MonitorCallback = ConnectionChangeCallback | Nil
+    alias ToggleConnectionCallback = Proc(Event::MonitorToggleConnection, Nil)
+    alias MonitorCallback = ToggleConnectionCallback | Nil
 
-    # A callback registry that maps a unique LibGLFW Monitor pointer to a callback.
-    # This allows multiple monitor objects to reference the same physical monitor and
-    # define universal callbacks for it.
-    @@callback_registry = {} of Pointer(LibGLFW::Monitor) => MonitorCallback
+    @@monitor_callback : MonitorCallback
 
-    private def initialize(handle : Pointer(LibGLFW::Monitor))
-      @handle = handle
+    # Sets the immutable monitor connection callback shim.
+    private def self.set_toggle_connection_callback
+      callback = LibGLFW::Monitorfun.new do |handle, connected_code|
+        monitor = new(handle)
+        connected = connected_code == CrystGLFW[:connected]
+        event = Event::MonitorToggleConnection.new(monitor, connected)
+        @@monitor_callback.try &.call(event)
+      end
+      LibGLFW.set_monitor_callback callback
+    end
+
+    # Defines the behavior that gets triggered when a monitor is either connected or disconnected.
+    #
+    # ```
+    # monitor = CrystGLFW::Monitor.primary
+    # monitor.on_toggle_connection do |event|
+    #   if event.connected?
+    #     puts "Welcome back, #{event.monitor.name}!"
+    #   else
+    #     puts "Farewell, #{event.monitor.name}."
+    #   end
+    # end
+    # ```
+    def self.on_toggle_connection(&callback)
+      @@monitor_callback = callback
     end
 
     # Returns all monitors currently connected to the system as an Array.
@@ -23,7 +43,7 @@ module CrystGLFW
     # ```
     # 
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def self.all
+    def self.all : Array(Monitor)
       handles = LibGLFW.get_monitors(out count)
       monitors = count.times.map { |i| new(handles[i]) }
       monitors.to_a
@@ -37,27 +57,12 @@ module CrystGLFW
     # ```
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def self.primary
+    def self.primary : Monitor
       new(LibGLFW.get_primary_monitor)
     end
 
-    # Defines the behavior that gets triggered when a monitor is either connected or disconnected.
-    #
-    # ```
-    # monitor = CrystGLFW::Monitor.primary
-    # monitor.on_connection_change do |event|
-    #   if event == :connected
-    #     puts "Welcome back, #{monitor.name}!"
-    #   else
-    #     puts "Farewell, #{monitor.name}."
-    #   end
-    # end
-    # ```
-    #
-    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def on_connection_change(&callback : ConnectionChangeCallback)
-      set_connection_change_callback unless @@callback_registry[@handle]?
-      @@callback_registry[@handle] = callback
+    private def initialize(handle : Pointer(LibGLFW::Monitor))
+      @handle = handle
     end
 
     # Returns the position of the upper-left corner of the monitor in screen coordinates relative to the virtual screen.
@@ -71,7 +76,7 @@ module CrystGLFW
     # ```
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def position
+    def position : NamedTuple(x: Number, y: Number)
       LibGLFW.get_monitor_pos(@handle, out x, out y)
       {x: x, y: y}
     end
@@ -90,7 +95,7 @@ module CrystGLFW
     # ```
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def physical_size
+    def physical_size : NamedTuple(width: Number, y: Number)
       LibGLFW.get_monitor_physical_size(@handle, out width, out height)
       {width: width, height: height}
     end
@@ -106,7 +111,7 @@ module CrystGLFW
     # ```
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def name
+    def name : String
       String.new LibGLFW.get_monitor_name(@handle)
     end
 
@@ -115,7 +120,7 @@ module CrystGLFW
     # TODO: Add an example here.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def video_modes
+    def video_modes : Array(VideoMode)
       vid_modes = LibGLFW.get_video_modes(@handle, out count)
       video_modes = count.times.map { |i| VideoMode.new(vid_modes[i]) }
       video_modes.to_a
@@ -133,7 +138,7 @@ module CrystGLFW
     # TODO: Improve this example with something useful.
     #
     # NOTE: This method must be called inside a `CrystGLFW#run` block definition.
-    def video_mode
+    def video_mode : VideoMode
       VideoMode.new LibGLFW.get_video_mode(@handle)
     end
 
@@ -143,38 +148,47 @@ module CrystGLFW
     # - *gamma*, the exponent used to generate the new gamma ramp.
     #
     # NOTE: This method must be called inside a `CrystGLFW#run` block definition.
-    def gamma=(gamma : Float32)
+    def set_gamma(gamma : Number)
+      LibGLFW.set_gamma @handle, gamma
+    end
+
+    # Alternate syntax for `#set_gamma`.
+    #
+    # This method accepts the following arguments:
+    # - *gamma*, the exponent used to generate the new gamma ramp.
+    #
+    # NOTE: This method must be called inside a `CrystGLFW#run` block definition.
+    def gamma=(gamma : Number)
       LibGLFW.set_gamma @handle, gamma
     end
 
     # Returns the monitor's current gamma ramp.
     #
     # NOTE: This method must be called inside a `CrystGLFW#run` block definition.
-    def gamma_ramp
+    def gamma_ramp : GammaRamp
       GammaRamp.new LibGLFW.get_gamma_ramp(@handle)
     end
 
     # Sets the monitor's gamma ramp to the given gamma ramp.
+    def set_gamma_ramp(gamma_ramp : GammaRamp)
+      LibGLFW.set_gamma_ramp @handle, gamma_ramp
+    end
+
+    # Alternate syntax for `#set_gamma_ramp`.
     def gamma_ramp=(gamma_ramp : GammaRamp)
       LibGLFW.set_gamma_ramp @handle, gamma_ramp
     end
 
+    # :nodoc:
     def ==(other : Monitor)
       @handle == other.to_unsafe
     end
 
     # :nodoc:
-    def to_unsafe
+    def to_unsafe : Pointer(LibGLFW::Monitor)
       @handle
     end
-
-    # Sets the immutable monitor connection callback shim.
-    private def set_connection_change_callback
-      callback = LibGLFW::Monitorfun.new do |handle, event|
-        event_label = CrystGLFW[:connected] == event ? :connected : :disconnected
-        @@callback_registry[handle].as(ConnectionChangeCallback).try &.call(event_label)
-      end
-      LibGLFW.set_monitor_callback callback
-    end
+    
+    set_toggle_connection_callback
   end
 end

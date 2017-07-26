@@ -20,7 +20,7 @@ module CrystGLFW
     # - *pixels*, the pixel data, given left-to-right, top-to-bottom.
     # 
     # NOTE: This method may be called outside a `CrystGLFW#run` block defintion without triggering an error.
-    def initialize(width : Int32, height : Int32, pixels : Array(UInt8))
+    def initialize(width : Number, height : Number, pixels : Array(Number))
       @image = LibGLFW::Image.new
       @image.width = width
       @image.height = height
@@ -28,17 +28,17 @@ module CrystGLFW
     end
 
     # Returns the width of the image in pixels.
-    def width : Int32
+    def width : Number
       @image.width
     end
 
     # Returns the height of the image in pixels.
-    def height : Int32
+    def height : Number
       @image.height
     end
 
     # Returns the pixel data of the image, arranged left-to-right, top-to-bottom.
-    def pixels : Array(UInt8)
+    def pixels : Array(Number)
       Slice.new(@image.pixels, width * height).to_a
     end
 
