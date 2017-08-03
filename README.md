@@ -22,7 +22,7 @@ Add this to your application's `shard.yml`:
 
 ```yaml
 dependencies:
-  cryst_glfw:
+  crystglfw:
     github: calebuharrison/CrystGLFW
     branch: master
 ```
@@ -36,7 +36,7 @@ shards install
 ## Quick Start
 
 ```crystal
-require "cryst_glfw"
+require "crystglfw"
 include CrystGLFW
 
 # Initialize GLFW
@@ -65,7 +65,7 @@ CrystGLFW.run do
 end
 ```
 
-CrystGLFW has much more to offer - check out the guides or the docs!
+CrystGLFW has much more to offer - check out the guides or the [docs](https://calebuharrison.github.io/CrystGLFW)!
 
 ## Contributing
 
