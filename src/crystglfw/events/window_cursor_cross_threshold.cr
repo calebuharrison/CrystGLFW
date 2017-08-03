@@ -3,9 +3,10 @@ module CrystGLFW
     # Represents an event wherein a window's cursor crosses the threshold of the window.
     struct WindowCursorCrossThreshold < Any
       getter window : CrystGLFW::Window
+      getter cursor : CrystGLFW::Cursor
 
       # :nodoc:
-      def initialize(@window, @entered)
+      def initialize(@window, @cursor, @entered : Bool)
       end
 
       def entered?

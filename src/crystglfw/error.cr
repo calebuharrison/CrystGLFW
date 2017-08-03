@@ -15,6 +15,8 @@ module CrystGLFW
       no_window_context:   NoWindowContext,
     }
 
+    # :nodoc:
+    #
     # Returns an instance of a subclass of `Error::Any` based on the given error code.
     #
     # ```
@@ -26,11 +28,24 @@ module CrystGLFW
     # This method accepts the following arguments:
     # - *error_code*, the code yielded by `CrystGLFW#on_error'
     #
-    # NOTE: This method may be called outside a `#run` block definition without triggering an error.
+    # NOTE: This method may be called outside a `CrystGLFW#run` block definition.
     def self.generate(error_code : Int32) : Error::Any
-      error_label = @@labels_and_types.keys.find { |label| error_code == CrystGLFW.constants[label] }
+      error_label = @@labels_and_types.keys.find { |label| error_code == CrystGLFW[label] }
       error_type = @@labels_and_types[error_label.as(Symbol)]
-      error_type.new error_code
+      error_type.new
+    end
+
+    # :nodoc
+    #
+    # Returns an instance of a subclass of `Error::Any` based on the given error label.
+    #
+    # This method accepts the following arguments:
+    # - *error_label*, the label to reference the type of Error.
+    #
+    # NOTE: This method may be called oustside a `CrystGLFW#run` block definition.
+    def self.generate(error_label : Symbol) : Error::Any
+      error_type = @@labels_and_types[error_label]
+      error_type.new
     end
   end
 end

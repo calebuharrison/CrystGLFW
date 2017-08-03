@@ -5,7 +5,7 @@ module CrystGLFW
       getter window : CrystGLFW::Window
 
       # :nodoc:
-      def initialize(@window, @iconified)
+      def initialize(@window, @iconified : Bool)
       end
 
       def iconified?

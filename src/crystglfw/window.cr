@@ -39,6 +39,10 @@ module CrystGLFW
     # define callbacks for it universally.
     @@callback_registry = {} of Pointer(LibGLFW::Window) => Hash(Symbol, WindowCallback)
 
+    # A cursor registry that maps a unique LibGLFW Window pointer to a cursor object.
+    # This allows multiple windows to reference the same cursor object.
+    @@cursor_registry = {} of Pointer(LibGLFW::Window) => Cursor
+
     # Returns the window whose context is current.
     #
     # ```
@@ -106,8 +110,9 @@ module CrystGLFW
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def destroy
-      LibGLFW.destroy_window @handle
+      remove_cursor
       @@callback_registry.delete @handle
+      LibGLFW.destroy_window @handle
     end
 
     # Returns true if the window is currently marked for closing. False otherwise.
@@ -189,7 +194,7 @@ module CrystGLFW
     # ```
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def position : NamedTuple(x: Number, y: Number)
+    def position : NamedTuple(x: Int32, y: Int32)
       LibGLFW.get_window_pos @handle, out x, out y
       {x: x, y: y}
     end
@@ -206,7 +211,7 @@ module CrystGLFW
     # - *y*, the y-coordinate of the desired position.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def set_position(x : Number, y : Number)
+    def set_position(x : Int32, y : Int32)
       LibGLFW.set_window_pos @handle, x, y
     end
 
@@ -221,7 +226,7 @@ module CrystGLFW
     # - *pos*, the desired position of the window.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def position=(pos : NamedTuple(x: Number, y: Number))
+    def position=(pos : NamedTuple(x: Int32, y: Int32))
       LibGLFW.set_window_pos @handle, pos[:x], pos[:y]
     end
 
@@ -233,7 +238,7 @@ module CrystGLFW
     # ```
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def size : NamedTuple(width: Number, height: Number)
+    def size : NamedTuple(width: Int32, height: Int32)
       LibGLFW.get_window_size @handle, out width, out height
       {width: width, height: height}
     end
@@ -250,7 +255,7 @@ module CrystGLFW
     # - *height*, the desired height of the window.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def set_size(width : Number, height : Number)
+    def set_size(width : Int32, height : Int32)
       LibGLFW.set_window_size @handle, width, height
     end
 
@@ -265,7 +270,7 @@ module CrystGLFW
     # - *size*, the desired size of the window.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def size=(size : NamedTuple(width: Number, height: Number))
+    def size=(size : NamedTuple(width: Int32, height: Int32))
       LibGLFW.set_window_size @handle, size[:width], size[:height]
     end
 
@@ -287,10 +292,10 @@ module CrystGLFW
     # Each corner is labeled accordingly: top_left, top_right, bottom_right, bottom_left
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def corners : NamedTuple(top_left: NamedTuple(x: Number, y: Number),
-    top_right: NamedTuple(x: Number, y: Number),
-    bottom_left: NamedTuple(x: Number, y: Number),
-    bottom_right: NamedTuple(x: Number, y: Number))
+    def corners : NamedTuple(top_left: NamedTuple(x: Int32, y: Int32),
+    top_right: NamedTuple(x: Int32, y: Int32),
+    bottom_left: NamedTuple(x: Int32, y: Int32),
+    bottom_right: NamedTuple(x: Int32, y: Int32))
       p, s = position, size
       tl = p
       br = {x: (tl[:x] + s[:width]), y: (tl[:y] + s[:height])}
@@ -363,8 +368,8 @@ module CrystGLFW
     # - *max_height*, the maximum height of the window, in screen coordinates.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def set_size_limits(min_width : Number = CrystGLFW[:dont_care], min_height : Number = CrystGLFW[:dont_care],
-                        max_width : Number = CrystGLFW[:dont_care], max_height : Number = CrystGLFW[:dont_care])
+    def set_size_limits(min_width : Int32 = CrystGLFW[:dont_care], min_height : Int32 = CrystGLFW[:dont_care],
+                        max_width : Int32 = CrystGLFW[:dont_care], max_height : Int32 = CrystGLFW[:dont_care])
       LibGLFW.set_window_size_limits @handle, min_width, min_height, max_width, max_height
     end
 
@@ -380,8 +385,8 @@ module CrystGLFW
     # - *limits*, the desired size limits to impose on the window.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def size_limits=(limits : NamedTuple(min_width: Number, min_height: Number,
-                     max_width: Number, max_height: Number))
+    def size_limits=(limits : NamedTuple(min_width: Int32, min_height: Int32,
+                     max_width: Int32, max_height: Int32))
       LibGLFW.set_window_size_limits @handle, limits[:min_width], limits[:min_height],
         limits[:max_width], limits[:max_height]
     end
@@ -398,7 +403,7 @@ module CrystGLFW
     # - *denominator*, the denominator of the aspect ratio.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def set_aspect_ratio(numerator : Number = CrystGLFW[:dont_care], denominator : Number = CrystGLFW[:dont_care])
+    def set_aspect_ratio(numerator : Int32 = CrystGLFW[:dont_care], denominator : Int32 = CrystGLFW[:dont_care])
       LibGLFW.set_aspect_ratio @handle, numerator, denominator
     end
 
@@ -413,7 +418,7 @@ module CrystGLFW
     # - *ratio*, the desired aspect ratio.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def aspect_ratio=(ratio : NamedTuple(numerator: Number, denominator: Number))
+    def aspect_ratio=(ratio : NamedTuple(numerator: Int32, denominator: Int32))
       LibGLFW.set_aspect_ratio @handle, ratio[:numerator], ratio[:denominator]
     end
 
@@ -428,7 +433,7 @@ module CrystGLFW
     # ```
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def framebuffer_size : NamedTuple(width: Number, height: Number)
+    def framebuffer_size : NamedTuple(width: Int32, height: Int32)
       LibGLFW.get_framebuffer_size @handle, out width, out height
       {width: width, height: height}
     end
@@ -446,7 +451,7 @@ module CrystGLFW
     # Each edge of the window is accessible: left, top, right, bottom.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def frame_size : NamedTuple(left: Number, top: Number, right: Number, bottom: Number)
+    def frame_size : NamedTuple(left: Int32, top: Int32, right: Int32, bottom: Int32)
       LibGLFW.get_window_frame_size @handle, out left, out top, out right, out bottom
       {left: left, top: top, right: right, bottom: bottom}
     end
@@ -554,7 +559,7 @@ module CrystGLFW
     # - *height*, the height of the window.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def exit_full_screen(x : Number = 100, y : Number = 100, width : Number = 640, height : Number = 480)
+    def exit_full_screen(x : Int32 = 100, y : Int32 = 100, width : Int32 = 640, height : Int32 = 480)
       LibGLFW.set_window_monitor @handle, nil, x, y, width, height, CrystGLFW[:dont_care]
     end
 
@@ -626,26 +631,62 @@ module CrystGLFW
       check_attribute :floating
     end
 
-    # Sets the window's cursor
+    # Returns the window's current cursor or creates one if it does not exist.
     #
     # ```
-    # cursor = Cursor.new(:hand_cursor)
-    # window.set_cursor cursor
+    # cursor = window.cursor
+    # ```
+    #
+    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
+    def cursor
+      @@cursor_registry[@handle]? ? @@cursor_registry[@handle] : Cursor.new(:arrow_cursor, self)
+    end
+
+    # Creates a cursor for the window with the given shape.
+    #
+    # ```
+    # # Creates a crosshair cursor
+    # cursor = window.cursor :crosshair_cursor
+    #
+    # # Creates an ibeam cursor
+    # cursor = window.cursor :ibeam_cursor
     # ```
     #
     # This method accepts the following arguments:
-    # - *cursor*, the window's new cursor.
+    # - *shape*, a symbol representing the desired shape of the cursor.
+    #
+    # *shape* can be one of the following values:
+    # - :arrow_cursor
+    # - :ibeam_cursor
+    # - :crosshair_cursor
+    # - :vresize_cursor
+    # - :hresize_cursor
+    # - :hand_cursor
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def set_cursor(cursor : Cursor)
-      LibGLFW.set_cursor @handle, cursor
+    def cursor(shape : Symbol)
+      @@cursor_registry[@handle].destroy if @@cursor_registry[@handle]?
+      @@cursor_registry[@handle] = Cursor.new shape, self
+      @@cursor_registry[@handle]
     end
 
-    # Alternate syntax for `#set_cursor`
+    # Creates a cursor that looks like *image* with hotspot at (*x*, *y*).
+    #
+    # ```
+    # # Create a cursor that looks like cool_image, with hotspot at (12, 12)
+    # cursor = window.cursor cool_image, 12, 12
+    # ```
+    #
+    # This method accepts the following arguments:
+    # - *image*, the desired cursor image.
+    # - *x*, the x-coordinate of the cursor hotspot, relative to the top-left corner of the image..
+    # - *y*, the y-coordinate of the cursor hotspot, relative to the top-left corner of the image.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def cursor=(cursor : Cursor)
-      LibGLFW.set_cursor @handle, cursor
+    def cursor(image : Image, x : Int32, y : Int32)
+      @@cursor_registry[@handle].destroy if @@cursor_registry[@handle]?
+      @@cursor_registry[@handle] = Cursor.new image, x, y, self
+      @@cursor_registry[@handle]
     end
 
     # Removes the window's current cursor.
@@ -656,57 +697,9 @@ module CrystGLFW
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def remove_cursor
+      @@cursor_registry[@handle].destroy if @@cursor_registry[@handle]?
+      @@cursor_registry.delete @handle
       LibGLFW.set_cursor @handle, nil
-    end
-
-    # Returns the cursor's position relative to the window's position.
-    #
-    # ```
-    # cp = window.cursor_position
-    # puts "The cursor is located at (#{cp[:x]}, #{cp[:y]})"
-    # ```
-    #
-    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def cursor_position : NamedTuple(x: Number, y: Number)
-      LibGLFW.get_cursor_pos @handle, out x, out y
-      {x: x, y: y}
-    end
-
-    # Sets the cursor's position relative to the window's position.
-    #
-    # ```
-    # # Set the cursor position to the top-left corner of the window.
-    # window.set_cursor_position 0, 0
-    #
-    # # Set the cursor position to the middle of the 200x200 window.
-    # window.set_cursor_position 100, 100
-    # ```
-    #
-    # This method accepts the following arguments:
-    # - *x*, the desired x coordinate of the cursor.
-    # - *y*, the desired y coordinate of the cursor.
-    #
-    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def set_cursor_position(x : Number, y : Number)
-      LibGLFW.set_cursor_pos @handle, x, y
-    end
-
-    # Alternate syntax for `#set_cursor_position`.
-    #
-    # ```
-    # # Set the cursor position to the top-left corner of the window.
-    # window.cursor_position = {x: 0, y: 0}
-    #
-    # # Set the cursor position to the middle of the 200x200 window.
-    # window.cursor_position = {x: 100, y: 100}
-    # ```
-    #
-    # This method accepts the following arguments:
-    # - *pos*, the desired coordinates of the cursor's position.
-    #
-    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def cursor_position=(pos : NamedTuple(x: Number, y: Number))
-      LibGLFW.set_cursor_pos @handle, pos[:x], pos[:y]
     end
 
     # Returns the current cursor mode's label.
@@ -991,8 +984,9 @@ module CrystGLFW
     private def set_cursor_cross_threshold_callback
       callback = LibGLFW::Cursorenterfun.new do |handle, entered_code|
         win = Window.new(handle)
-        entered? = entered_code == CrystGLFW[:true]
-        event = Event::WindowCursorCrossThreshold.new(win, entered?)
+        cursor = win.cursor
+        entered = entered_code == CrystGLFW[:true]
+        event = Event::WindowCursorCrossThreshold.new(win, cursor, entered)
         @@callback_registry[handle][:cursor_cross_threshold].as(CursorCrossThresholdCallback).try &.call(event)
       end
       LibGLFW.set_cursor_enter_callback @handle, callback
@@ -1002,7 +996,8 @@ module CrystGLFW
     private def set_cursor_move_callback
       callback = LibGLFW::Cursorposfun.new do |handle, x, y|
         win = Window.new(handle)
-        event = Event::WindowCursorMove.new(win, x, y)
+        cursor = win.cursor
+        event = Event::WindowCursorMove.new(win, cursor, x, y)
         @@callback_registry[handle][:cursor_move].as(CursorMoveCallback).try &.call(event)
       end
       LibGLFW.set_cursor_pos_callback @handle, callback

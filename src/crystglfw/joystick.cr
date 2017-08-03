@@ -22,7 +22,7 @@ module CrystGLFW
     #   end
     # end
     # ```
-    def self.on_toggle_connection(&callback)
+    def self.on_toggle_connection(&callback : ToggleConnectionCallback)
       @@joystick_callback = callback
     end
 
@@ -67,7 +67,7 @@ module CrystGLFW
     #   puts "The value of axis #{i} is #{axis}"
     # end
     # ```
-    def axes : Array(Number)
+    def axes : Array(Float32)
       axis_array = LibGLFW.get_joystick_axes(@code, out count)
       Slice.new(axis_array, count).to_a
     end
@@ -90,8 +90,8 @@ module CrystGLFW
     # Returns true if the joystick is connected. False otherwise.
     #
     # ```
-    # CrystGLFW::Joystick.on_connection_change do |joystick|
-    #   if joystick.connected?
+    # CrystGLFW::Joystick.on_toggle_connection do |event|
+    #   if event.joystick.connected?
     #     puts "A joystick was connected."
     #   else
     #     puts "A joystick was disconnected."
@@ -105,8 +105,8 @@ module CrystGLFW
     # Returns true if the joystick is referenced by the given label. False otherwise.
     #
     # ```
-    # CrystGLFW::Joystick.on_connection_change do |joystick|
-    #   if joystick.is? :joystick_last
+    # CrystGLFW::Joystick.on_toggle_connection do |event|
+    #   if event.joystick.is? :joystick_last
     #     puts "A joystick has been connected in the last joystick slot!"
     #   end
     # end
@@ -115,7 +115,7 @@ module CrystGLFW
     # Also accepts multiple labels and returns true if the joystick is matched by any of them.
     #
     # ```
-    # CrystGLFW::Joystick.on_connection_change do |event|
+    # CrystGLFW::Joystick.on_toggle_connection do |event|
     #   if event.joystick.is? :joystick_1, :joystick_2, :joystick_3, :joystick_4
     #     puts "One of the first four joystick slots has been used."
     #   end

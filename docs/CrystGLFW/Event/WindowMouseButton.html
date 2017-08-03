@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta id="repository-name" content="github.com/calebuharrison/CrystGLFW">
+  <link href="../../css/style.css" rel="stylesheet" type="text/css" />
+  <script type="text/javascript" src="../../js/doc.js"></script>
+  <title>CrystGLFW::Event::WindowMouseButton - github.com/calebuharrison/CrystGLFW</title>
+</head>
+<body>
+
+<div id="types-list">
+  <div id="search-box">
+    <input type="search" id="search-input" placeholder="Search...">
+  </div>
+
+  <ul>
+    <li><a href="../../index.html">README</a></li>
+  </ul>
+
+  <ul>
+  
+  <li class="parent open current" data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW" data-name="crystglfw">
+      <a href="../../CrystGLFW.html">CrystGLFW</a>
+      
+        <ul>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Cursor" data-name="crystglfw::cursor">
+      <a href="../../CrystGLFW/Cursor.html">Cursor</a>
+      
+    </li>
+  
+  <li class="parent " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Error" data-name="crystglfw::error">
+      <a href="../../CrystGLFW/Error.html">Error</a>
+      
+        <ul>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Error/Any" data-name="crystglfw::error::any">
+      <a href="../../CrystGLFW/Error/Any.html">Any</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Error/APIUnavailable" data-name="crystglfw::error::apiunavailable">
+      <a href="../../CrystGLFW/Error/APIUnavailable.html">APIUnavailable</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Error/FormatUnavailable" data-name="crystglfw::error::formatunavailable">
+      <a href="../../CrystGLFW/Error/FormatUnavailable.html">FormatUnavailable</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Error/InvalidEnum" data-name="crystglfw::error::invalidenum">
+      <a href="../../CrystGLFW/Error/InvalidEnum.html">InvalidEnum</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Error/InvalidValue" data-name="crystglfw::error::invalidvalue">
+      <a href="../../CrystGLFW/Error/InvalidValue.html">InvalidValue</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Error/NoCurrentContext" data-name="crystglfw::error::nocurrentcontext">
+      <a href="../../CrystGLFW/Error/NoCurrentContext.html">NoCurrentContext</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Error/NotInitialized" data-name="crystglfw::error::notinitialized">
+      <a href="../../CrystGLFW/Error/NotInitialized.html">NotInitialized</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Error/NoWindowContext" data-name="crystglfw::error::nowindowcontext">
+      <a href="../../CrystGLFW/Error/NoWindowContext.html">NoWindowContext</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Error/OutOfMemory" data-name="crystglfw::error::outofmemory">
+      <a href="../../CrystGLFW/Error/OutOfMemory.html">OutOfMemory</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Error/PlatformError" data-name="crystglfw::error::platformerror">
+      <a href="../../CrystGLFW/Error/PlatformError.html">PlatformError</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Error/VersionUnavailable" data-name="crystglfw::error::versionunavailable">
+      <a href="../../CrystGLFW/Error/VersionUnavailable.html">VersionUnavailable</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/ErrorCallback" data-name="crystglfw::errorcallback">
+      <a href="../../CrystGLFW/ErrorCallback.html">ErrorCallback</a>
+      
+    </li>
+  
+  <li class="parent open current" data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Event" data-name="crystglfw::event">
+      <a href="../../CrystGLFW/Event.html">Event</a>
+      
+        <ul>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Event/Any" data-name="crystglfw::event::any">
+      <a href="../../CrystGLFW/Event/Any.html">Any</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Event/JoystickToggleConnection" data-name="crystglfw::event::joysticktoggleconnection">
+      <a href="../../CrystGLFW/Event/JoystickToggleConnection.html">JoystickToggleConnection</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Event/Modifiers" data-name="crystglfw::event::modifiers">
+      <a href="../../CrystGLFW/Event/Modifiers.html">Modifiers</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Event/MonitorToggleConnection" data-name="crystglfw::event::monitortoggleconnection">
+      <a href="../../CrystGLFW/Event/MonitorToggleConnection.html">MonitorToggleConnection</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Event/WindowChar" data-name="crystglfw::event::windowchar">
+      <a href="../../CrystGLFW/Event/WindowChar.html">WindowChar</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Event/WindowClose" data-name="crystglfw::event::windowclose">
+      <a href="../../CrystGLFW/Event/WindowClose.html">WindowClose</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Event/WindowCursorCrossThreshold" data-name="crystglfw::event::windowcursorcrossthreshold">
+      <a href="../../CrystGLFW/Event/WindowCursorCrossThreshold.html">WindowCursorCrossThreshold</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Event/WindowCursorMove" data-name="crystglfw::event::windowcursormove">
+      <a href="../../CrystGLFW/Event/WindowCursorMove.html">WindowCursorMove</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Event/WindowFileDrop" data-name="crystglfw::event::windowfiledrop">
+      <a href="../../CrystGLFW/Event/WindowFileDrop.html">WindowFileDrop</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Event/WindowFramebufferResize" data-name="crystglfw::event::windowframebufferresize">
+      <a href="../../CrystGLFW/Event/WindowFramebufferResize.html">WindowFramebufferResize</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Event/WindowKey" data-name="crystglfw::event::windowkey">
+      <a href="../../CrystGLFW/Event/WindowKey.html">WindowKey</a>
+      
+    </li>
+  
+  <li class=" current" data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Event/WindowMouseButton" data-name="crystglfw::event::windowmousebutton">
+      <a href="../../CrystGLFW/Event/WindowMouseButton.html">WindowMouseButton</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Event/WindowMove" data-name="crystglfw::event::windowmove">
+      <a href="../../CrystGLFW/Event/WindowMove.html">WindowMove</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Event/WindowRefresh" data-name="crystglfw::event::windowrefresh">
+      <a href="../../CrystGLFW/Event/WindowRefresh.html">WindowRefresh</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Event/WindowResize" data-name="crystglfw::event::windowresize">
+      <a href="../../CrystGLFW/Event/WindowResize.html">WindowResize</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Event/WindowScroll" data-name="crystglfw::event::windowscroll">
+      <a href="../../CrystGLFW/Event/WindowScroll.html">WindowScroll</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Event/WindowToggleFocus" data-name="crystglfw::event::windowtogglefocus">
+      <a href="../../CrystGLFW/Event/WindowToggleFocus.html">WindowToggleFocus</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Event/WindowToggleIconification" data-name="crystglfw::event::windowtoggleiconification">
+      <a href="../../CrystGLFW/Event/WindowToggleIconification.html">WindowToggleIconification</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/GammaRamp" data-name="crystglfw::gammaramp">
+      <a href="../../CrystGLFW/GammaRamp.html">GammaRamp</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Image" data-name="crystglfw::image">
+      <a href="../../CrystGLFW/Image.html">Image</a>
+      
+    </li>
+  
+  <li class="parent " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Joystick" data-name="crystglfw::joystick">
+      <a href="../../CrystGLFW/Joystick.html">Joystick</a>
+      
+        <ul>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Joystick/JoystickCallback" data-name="crystglfw::joystick::joystickcallback">
+      <a href="../../CrystGLFW/Joystick/JoystickCallback.html">JoystickCallback</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Joystick/ToggleConnectionCallback" data-name="crystglfw::joystick::toggleconnectioncallback">
+      <a href="../../CrystGLFW/Joystick/ToggleConnectionCallback.html">ToggleConnectionCallback</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Key" data-name="crystglfw::key">
+      <a href="../../CrystGLFW/Key.html">Key</a>
+      
+    </li>
+  
+  <li class="parent " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Monitor" data-name="crystglfw::monitor">
+      <a href="../../CrystGLFW/Monitor.html">Monitor</a>
+      
+        <ul>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Monitor/MonitorCallback" data-name="crystglfw::monitor::monitorcallback">
+      <a href="../../CrystGLFW/Monitor/MonitorCallback.html">MonitorCallback</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Monitor/ToggleConnectionCallback" data-name="crystglfw::monitor::toggleconnectioncallback">
+      <a href="../../CrystGLFW/Monitor/ToggleConnectionCallback.html">ToggleConnectionCallback</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/MouseButton" data-name="crystglfw::mousebutton">
+      <a href="../../CrystGLFW/MouseButton.html">MouseButton</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/VideoMode" data-name="crystglfw::videomode">
+      <a href="../../CrystGLFW/VideoMode.html">VideoMode</a>
+      
+    </li>
+  
+  <li class="parent " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Window" data-name="crystglfw::window">
+      <a href="../../CrystGLFW/Window.html">Window</a>
+      
+        <ul>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Window/CharCallback" data-name="crystglfw::window::charcallback">
+      <a href="../../CrystGLFW/Window/CharCallback.html">CharCallback</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Window/CloseCallback" data-name="crystglfw::window::closecallback">
+      <a href="../../CrystGLFW/Window/CloseCallback.html">CloseCallback</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Window/CursorCrossThresholdCallback" data-name="crystglfw::window::cursorcrossthresholdcallback">
+      <a href="../../CrystGLFW/Window/CursorCrossThresholdCallback.html">CursorCrossThresholdCallback</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Window/CursorMoveCallback" data-name="crystglfw::window::cursormovecallback">
+      <a href="../../CrystGLFW/Window/CursorMoveCallback.html">CursorMoveCallback</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Window/FileDropCallback" data-name="crystglfw::window::filedropcallback">
+      <a href="../../CrystGLFW/Window/FileDropCallback.html">FileDropCallback</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Window/FramebufferResizeCallback" data-name="crystglfw::window::framebufferresizecallback">
+      <a href="../../CrystGLFW/Window/FramebufferResizeCallback.html">FramebufferResizeCallback</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Window/KeyCallback" data-name="crystglfw::window::keycallback">
+      <a href="../../CrystGLFW/Window/KeyCallback.html">KeyCallback</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Window/MouseButtonCallback" data-name="crystglfw::window::mousebuttoncallback">
+      <a href="../../CrystGLFW/Window/MouseButtonCallback.html">MouseButtonCallback</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Window/MoveCallback" data-name="crystglfw::window::movecallback">
+      <a href="../../CrystGLFW/Window/MoveCallback.html">MoveCallback</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Window/RefreshCallback" data-name="crystglfw::window::refreshcallback">
+      <a href="../../CrystGLFW/Window/RefreshCallback.html">RefreshCallback</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Window/ResizeCallback" data-name="crystglfw::window::resizecallback">
+      <a href="../../CrystGLFW/Window/ResizeCallback.html">ResizeCallback</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Window/ScrollCallback" data-name="crystglfw::window::scrollcallback">
+      <a href="../../CrystGLFW/Window/ScrollCallback.html">ScrollCallback</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Window/ToggleFocusCallback" data-name="crystglfw::window::togglefocuscallback">
+      <a href="../../CrystGLFW/Window/ToggleFocusCallback.html">ToggleFocusCallback</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Window/ToggleIconificationCallback" data-name="crystglfw::window::toggleiconificationcallback">
+      <a href="../../CrystGLFW/Window/ToggleIconificationCallback.html">ToggleIconificationCallback</a>
+      
+    </li>
+  
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Window/WindowCallback" data-name="crystglfw::window::windowcallback">
+      <a href="../../CrystGLFW/Window/WindowCallback.html">WindowCallback</a>
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+</ul>
+
+      
+    </li>
+  
+</ul>
+
+</div>
+
+<div id="main-content">
+<h1 class="type-name">
+
+  <span class="kind">struct</span> CrystGLFW::Event::WindowMouseButton
+
+</h1>
+
+
+  <ul class="superclass-hierarchy"><li class="superclass"><a href="../../CrystGLFW/Event/WindowMouseButton.html">CrystGLFW::Event::WindowMouseButton</a></li><li class="superclass"><a href="../../CrystGLFW/Event/Any.html">CrystGLFW::Event::Any</a></li><li class="superclass">Struct</li><li class="superclass">Value</li><li class="superclass">Object</li></ul>
+
+
+
+
+  <h2>Overview</h2>
+
+  <p>A WindowMouseButtonEvent is generated by the <code><a href="../../CrystGLFW/Window.html#on_mouse_button%28%26callback%3AMouseButtonCallback%29-instance-method">Window#on_mouse_button</a></code> callback and contains a <code><a href="../../CrystGLFW/MouseButton.html">MouseButton</a></code> along with
+an interface to determine what action occurred with the key.</p>
+
+
+
+
+
+  <h2>Included Modules</h2>
+  <ul class="other-types-list">
+  
+    <li class="other-type"><a href="../../CrystGLFW/Event/Modifiers.html">CrystGLFW::Event::Modifiers</a></li>
+  
+  </ul>
+
+
+
+
+
+
+
+
+
+
+  <h2>Defined in:</h2>
+  
+    
+      <a href="https://github.com/calebuharrison/CrystGLFW/blob/6b9fb48c0aa81ee3d57d2c3017c9e4afa1b92a9f/src/crystglfw/events/window_mouse_button.cr#L5" target="_blank">crystglfw/events/window_mouse_button.cr</a>
+    
+    <br/>
+  
+
+
+
+
+
+
+
+
+
+  <h2>Instance Method Summary</h2>
+  <ul class="list-summary">
+    
+      <li class="entry-summary">
+        <a href="#mouse_button%3AMouseButton-instance-method" class="signature"><strong>#mouse_button</strong> : MouseButton</a>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#press%3F-instance-method" class="signature"><strong>#press?</strong></a>
+        
+          <div class="summary"><p>Returns true if the mouse button was pressed.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#release%3F-instance-method" class="signature"><strong>#release?</strong></a>
+        
+          <div class="summary"><p>Returns true if the mouse button was released.</p></div>
+        
+      </li>
+    
+      <li class="entry-summary">
+        <a href="#window%3ACrystGLFW%3A%3AWindow-instance-method" class="signature"><strong>#window</strong> : CrystGLFW::Window</a>
+        
+      </li>
+    
+  </ul>
+
+
+
+
+
+<div class="methods-inherited">
+  
+    
+
+  <h3>Instance methods inherited from module <code><a href="../../CrystGLFW/Event/Modifiers.html">CrystGLFW::Event::Modifiers</a></code></h3>
+  
+  
+    <a href="../../CrystGLFW/Event/Modifiers.html#alt%3F-instance-method" class="tooltip">
+      <span>alt?</span>
+    alt?</a>, 
+    
+  
+    <a href="../../CrystGLFW/Event/Modifiers.html#control%3F-instance-method" class="tooltip">
+      <span>control?</span>
+    control?</a>, 
+    
+  
+    <a href="../../CrystGLFW/Event/Modifiers.html#shift%3F-instance-method" class="tooltip">
+      <span>shift?</span>
+    shift?</a>, 
+    
+  
+    <a href="../../CrystGLFW/Event/Modifiers.html#super%3F-instance-method" class="tooltip">
+      <span>super?</span>
+    super?</a>
+    
+  
+
+
+    
+
+
+    
+
+
+  
+    
+
+
+    
+
+  <h3>Constructor methods inherited from struct <code><a href="../../CrystGLFW/Event/Any.html">CrystGLFW::Event::Any</a></code></h3>
+  
+  
+    <a href="../../CrystGLFW/Event/Any.html#new-class-method" class="tooltip">
+      <span>new</span>
+    new</a>
+    
+  
+
+
+    
+
+
+  
+    
+
+
+    
+
+
+    
+
+
+  
+    
+
+
+    
+
+
+    
+
+
+  
+    
+
+
+    
+
+
+    
+
+
+  
+</div>
+
+
+
+
+
+
+  <h2>Instance Method Detail</h2>
+  
+    <div class="entry-detail" id="mouse_button:MouseButton-instance-method">
+      <div class="signature">
+        
+        def <strong>mouse_button</strong> : <a href="../../CrystGLFW/MouseButton.html">MouseButton</a>
+
+        <a class="method-permalink" href="#mouse_button%3AMouseButton-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/calebuharrison/CrystGLFW/blob/6b9fb48c0aa81ee3d57d2c3017c9e4afa1b92a9f/src/crystglfw/events/window_mouse_button.cr#L12" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="press?-instance-method">
+      <div class="signature">
+        
+        def <strong>press?</strong>
+
+        <a class="method-permalink" href="#press%3F-instance-method">#</a>
+      </div>
+      
+        <div class="doc"><p>Returns true if the mouse button was pressed. False otherwise.</p>
+
+<pre><code>window.on_mouse_button <span class="k">do</span> <span class="o">|</span>event<span class="o">|</span>
+  puts <span class="s">&quot;a mouse button was pressed.&quot;</span> <span class="k">if</span> event.press?
+<span class="k">end</span></code></pre></div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/calebuharrison/CrystGLFW/blob/6b9fb48c0aa81ee3d57d2c3017c9e4afa1b92a9f/src/crystglfw/events/window_mouse_button.cr#L29" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="release?-instance-method">
+      <div class="signature">
+        
+        def <strong>release?</strong>
+
+        <a class="method-permalink" href="#release%3F-instance-method">#</a>
+      </div>
+      
+        <div class="doc"><p>Returns true if the mouse button was released. False otherwise.</p>
+
+<pre><code>window.on_mouse_button <span class="k">do</span> <span class="o">|</span>event<span class="o">|</span>
+  puts <span class="s">&quot;a mouse button was released.&quot;</span> <span class="k">if</span> event.release?
+<span class="k">end</span></code></pre></div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/calebuharrison/CrystGLFW/blob/6b9fb48c0aa81ee3d57d2c3017c9e4afa1b92a9f/src/crystglfw/events/window_mouse_button.cr#L40" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+    <div class="entry-detail" id="window:CrystGLFW::Window-instance-method">
+      <div class="signature">
+        
+        def <strong>window</strong> : <a href="../../CrystGLFW/Window.html">CrystGLFW::Window</a>
+
+        <a class="method-permalink" href="#window%3ACrystGLFW%3A%3AWindow-instance-method">#</a>
+      </div>
+      
+      <br/>
+      <div>
+        
+          [<a href="https://github.com/calebuharrison/CrystGLFW/blob/6b9fb48c0aa81ee3d57d2c3017c9e4afa1b92a9f/src/crystglfw/events/window_mouse_button.cr#L11" target="_blank">View source</a>]
+        
+      </div>
+    </div>
+  
+
+
+
+
+</div>
+
+</body>
+</html>

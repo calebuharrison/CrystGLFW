@@ -8,8 +8,8 @@ module CrystGLFW
     # Create a new image for use as a Cursor image or a Window icon.
     #
     # ```
-    # width, height = 4, 4
-    # pixels = Array(UInt8).new(width * height, 0_u8)
+    # width, height = 16, 32
+    # pixels = Array(UInt8).new(width * height, 255_u8)
     # image = CrystGLFW::Image.new(width, height, pixels)
     # ```
     #
@@ -19,7 +19,7 @@ module CrystGLFW
     # - *pixels*, the pixel data, given left-to-right, top-to-bottom.
     #
     # NOTE: This method may be called outside a `CrystGLFW#run` block defintion without triggering an error.
-    def initialize(width : Number, height : Number, pixels : Array(Number))
+    def initialize(width : Int32, height : Int32, pixels : Array(UInt8))
       @image = LibGLFW::Image.new
       @image.width = width
       @image.height = height
@@ -27,17 +27,17 @@ module CrystGLFW
     end
 
     # Returns the width of the image in pixels.
-    def width : Number
+    def width : Int32
       @image.width
     end
 
     # Returns the height of the image in pixels.
-    def height : Number
+    def height : Int32
       @image.height
     end
 
     # Returns the pixel data of the image, arranged left-to-right, top-to-bottom.
-    def pixels : Array(Number)
+    def pixels : Array(UInt8)
       Slice.new(@image.pixels, width * height).to_a
     end
 

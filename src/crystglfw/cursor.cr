@@ -3,49 +3,94 @@ require "lib_glfw"
 module CrystGLFW
   # A Cursor represents a GLFW cursor and can either use a custom image or a system-default shape as its likeness.
   #
-  # After a cursor object is created, it can be attached to a window via `Window#cursor=`.
-  #
-  # Due to the way cursors are implemented in GLFW, a Cursor object's position must be
-  # queried indirectly through its associated Window object via `Window#cursor_position`.
+  # Cursors are created indirectly through windows, and are therefore always associated with a `Window`.
   struct Cursor
-    # Returns a new Cursor object with the given system-default shape.
-    #
-    # ```
-    # cursor = CrystGLFW::Cursor.new :hand_cursor # Creates a cursor with a hand shape.
-    # ```
-    #
-    # This method accepts the following arguments:
-    # - *shape*, the system-default shape that the Cursor object will take on.
-    #
-    # *shape* can be any one of the following values:
-    # - :arrow_cursor
-    # - :ibeam_cursor
-    # - :crosshair_cursor
-    # - :hand_cursor
-    # - :hresize_cursor
-    # - :vresize_cursor
-    #
-    # NOTE: This method must be called inside a `CrystGLFW#run` block definition.
-    def initialize(shape : Symbol)
+    # :nodoc:
+    def initialize(shape : Symbol, window : Window)
       @handle = LibGLFW.create_standard_cursor(CrystGLFW[shape])
+      @window = window
+      LibGLFW.set_cursor @window, @handle
     end
 
-    # Returns a new Cursor object with the given image shape and hotspot.
+    # :nodoc:
+    def initialize(image : Image, x : Number, y : Number, window : Window)
+      @handle = LibGLFW.create_cursor(image, x, y)
+      @window = window
+      LibGLFW.set_cursor @window, @handle
+    end
+
+    # Returns the cursor's window.
     #
     # ```
-    # cursor = CrystGLFW::Cursor.new cool_image, 6, 6 # Creates a cursor that looks like cool_image with hotspot (6,6)
+    # # Get the cursor's associated window.
+    # window = cursor.window
+    # ```
+    def window : Window
+      @window
+    end
+
+    # Returns the position of the cursor relative to its window.
+    #
+    # ```
+    # cp = cursor.position
+    # puts "The cursor position is located at (#{cp[:x]}, #{cp[:y]}) relative to its window."
+    # ```
+    #
+    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
+    def position : NamedTuple(x: Float64, y: Float64)
+      LibGLFW.get_cursor_pos @window.to_unsafe, out x, out y
+      {x: x, y: y}
+    end
+
+    # Sets the cursor's position relative to its window.
+    #
+    # ```
+    # # Set the cursor position to the top-left corner of its window.
+    # cursor.set_position 0, 0
     # ```
     #
     # This method accepts the following arguments:
-    # - *image*, the shape of the Cursor object.
-    # - *x*, the x-coordinate of the Cursor object's hotspot.
-    # - *y*, the y-coordinate of the Cursor object's hotspot.
+    # - *x*, the desired x coordinate of the cursor.
+    # - *y*, the desired y coordinate of the cursor.
     #
-    # NOTE: This method must be called inside a `CrystGLFW#run` block definition.
-    def initialize(image : Image, x : Number, y : Number)
-      @handle = LibGLFW.create_cursor(image, x, y)
+    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
+    def set_position(x : Number, y : Number)
+      LibGLFW.set_cursor_pos @window.to_unsafe, x, y
     end
 
+    # Alternate syntax for `#set_position`.
+    #
+    # ```
+    # # Set the cursor position to the top-left corner of its window.
+    # cursor.position = {x: 0, y: 0}
+    # ```
+    #
+    # This method accepts the following arguments:
+    # - *pos*, the desired coordinates of the cursor's position.
+    #
+    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
+    def position=(pos : NamedTuple(x: Number, y: Number))
+      set_position pos[:x], pos[:y]
+    end
+
+    # Returns true if the cursor is in its window. False otherwise.
+    #
+    # ```
+    # if window.cursor.in_window?
+    #   puts "The cursor is in its window!"
+    # else
+    #   puts "The cursor is somewhere else"
+    # end
+    # ```
+    #
+    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
+    def in_window?
+      wp = @window.position
+      @window.contains? position[:x] + wp[:x], position[:y] + wp[:y]
+    end
+
+    # :nodoc:
+    #
     # Destroys the underlying GLFW cursor.
     #
     # ```
@@ -57,6 +102,7 @@ module CrystGLFW
       LibGLFW.destroy_cursor @handle
     end
 
+    # :nodoc:
     def ==(other : Cursor)
       @handle == other.to_unsafe
     end

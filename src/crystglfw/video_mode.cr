@@ -23,6 +23,11 @@ module CrystGLFW
       vid_mode.blueBits
     end
 
+    # Returns the bit depth of each channel of the video mode.
+    def channel_bits : NamedTuple(red: Int32, green: Int32, blue: Int32)
+      {red: vid_mode.redBits, green: vid_mode.greenBits, blue: vid_mode.blueBits}
+    end
+
     # Returns the width, in screen coordinates, of the video mode.
     def width : Number
       vid_mode.width
@@ -31,6 +36,11 @@ module CrystGLFW
     # Returns the height, in screen coordinates, of the video mode.
     def height : Number
       vid_mode.height
+    end
+
+    # Returns the size, in screen coordinates, of the video mode.
+    def size : NamedTuple(width: Int32, height: Int32)
+      {width: vid_mode.width, height: vid_mode.height}
     end
 
     # Returns the refresh rate, in Hz, of the video mode.
