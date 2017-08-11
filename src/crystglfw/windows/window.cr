@@ -641,7 +641,7 @@ module CrystGLFW
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def set_icon(icon : Image)
-      LibGLFW.set_window_icon @handle, 1, image
+      LibGLFW.set_window_icon @handle, 1, icon
     end
 
     # Alternate syntax for `#set_icon`
