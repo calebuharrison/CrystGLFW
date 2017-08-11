@@ -36,13 +36,11 @@ module CrystGLFW
       end
     end
 
-    getter name : String | Nil
     getter code : Int32
 
     # :nodoc:
     def initialize(code : Int32)
       @code = code
-      @name = joystick_name
     end
 
     # Creates a joystick object that wraps an underlying GLFW joystick, identified by the given label.
@@ -56,7 +54,6 @@ module CrystGLFW
     # - *label*, the Symbol that identifies the virtual GLFW joystick slot.
     def initialize(label : Symbol)
       @code = CrystGLFW[label]
-      @name = joystick_name
     end
 
     # Returns the values of all axes of this joystick.
@@ -72,18 +69,18 @@ module CrystGLFW
       Slice.new(axis_array, count).to_a
     end
 
-    # Returns the state of all buttons of this joystick.
+    # Returns the state of all buttons of this joystick as true or false - press or release.
     #
     # ```
     # joystick = CrystGLFW::Joystick.new(:joystick_1)
     # joystick.buttons.each_with_index do |button, i|
-    #   puts "button #{i} is pressed!" if button == :press
+    #   puts "button #{i} is pressed!" if button
     # end
     # ```
-    def buttons : Array(Symbol)
+    def buttons : Array(Bool)
       buttons = LibGLFW.get_joystick_buttons(@code, out count)
       button_array = Slice.new(buttons, count).to_a
-      button_states = button_array.map { |button| button == CrystGLFW[:press] ? :press : :release }
+      button_states = button_array.map { |button| button == CrystGLFW[:press] }
       button_states.to_a
     end
 
@@ -129,13 +126,19 @@ module CrystGLFW
       !maybe_label.nil?
     end
 
-    # Retrieves the joystick's default name if the joystick is connected.
-    private def joystick_name : String | Nil
-      joy_name = LibGLFW.get_joystick_name(@code)
-      if joy_name
-        String.new(joy_name)
+    # Retrieves the joystick's default name if the joystick is connected. Otherwise, raises an exception.
+    #
+    # if joystick.connected?
+    #   puts joystick.name # prints the joystick's name
+    # end
+    #
+    # NOTE: This method must be called from within a `run` block definition.
+    def name : String
+      candidate = LibGLFW.get_joystick_name(@code)
+      if candidate.null?
+        raise Error.generate(:joystick_not_connected)
       else
-        nil
+        String.new(candidate)
       end
     end
 

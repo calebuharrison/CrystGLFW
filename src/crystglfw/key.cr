@@ -13,7 +13,6 @@ module CrystGLFW
                               :key_kp_3, :key_kp_4, :key_kp_5, :key_kp_6, :key_kp_7, :key_kp_8, :key_kp_9, :key_kp_decimal,
                               :key_kp_divide, :key_kp_multiply, :key_kp_subtract, :key_kp_add, :key_kp_equal]
 
-    getter name : String | Nil
     getter code : Int32
     getter scancode : Int32
 
@@ -21,7 +20,6 @@ module CrystGLFW
     def initialize(code : Int32, scancode : Int32)
       @code = code
       @scancode = scancode
-      @name = key_name if printable?
     end
 
     # Returns true if the key is considered printable. False otherwise.
@@ -75,14 +73,26 @@ module CrystGLFW
       !maybe_label.nil?
     end
 
+    # Returns the key's name, if the key is printable. Otherwise raises an exception.
+    #
+    # ```
+    # if key.printable?
+    #   puts key.name # prints the key's name
+    # end
+    #
+    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
+    def name
+      candidate = LibGLFW.get_key_name(@code, @scancode)
+      if candidate.null?
+        raise Error.generate(:key_not_printable)
+      else
+        String.new(candidate)
+      end
+    end
+
     # :nodoc:
     def to_unsafe : Int32
       @code
-    end
-
-    # Returns the key's name.
-    private def key_name : String
-      String.new(LibGLFW.get_key_name(@code, @scancode))
     end
   end
 end

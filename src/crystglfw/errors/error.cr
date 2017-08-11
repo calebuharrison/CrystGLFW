@@ -3,16 +3,19 @@ module CrystGLFW
   module Error
     # :nodoc:
     @@labels_and_types = {
-      not_initialized:     NotInitialized,
-      no_current_context:  NoCurrentContext,
-      invalid_enum:        InvalidEnum,
-      invalid_value:       InvalidValue,
-      out_of_memory:       OutOfMemory,
-      api_unavailable:     APIUnavailable,
-      version_unavailable: VersionUnavailable,
-      platform_error:      PlatformError,
-      format_unavailable:  FormatUnavailable,
-      no_window_context:   NoWindowContext,
+      not_initialized:        NotInitialized,
+      no_current_context:     NoCurrentContext,
+      invalid_enum:           InvalidEnum,
+      invalid_value:          InvalidValue,
+      out_of_memory:          OutOfMemory,
+      api_unavailable:        APIUnavailable,
+      version_unavailable:    VersionUnavailable,
+      platform_error:         PlatformError,
+      format_unavailable:     FormatUnavailable,
+      no_window_context:      NoWindowContext,
+      not_full_screen:        NotFullScreen,
+      key_not_printable:      KeyNotPrintable,
+      joystick_not_connected: JoystickNotConnected,
     }
 
     # :nodoc:

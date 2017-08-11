@@ -10,6 +10,8 @@ The flexibility and portability of GLFW meets the speed and ease-of-use of Cryst
 
 CrystGLFW uses [LibGLFW](https://github.com/calebuharrison/LibGLFW) behind the scenes.
 
+[Read the guides!](https://calebuharrison.gitbooks.io/crystglfw-guide/content/)
+
 ## Installation
 
 First, you'll want to make sure you've got GLFW3:
@@ -65,7 +67,7 @@ CrystGLFW.run do
 end
 ```
 
-CrystGLFW has much more to offer - check out the guides or the [docs](https://calebuharrison.github.io/CrystGLFW)!
+CrystGLFW has much more to offer - check out the [guides](https://calebuharrison.gitbooks.io/crystglfw-guide/content/)!
 
 ## Contributing
 

@@ -5,7 +5,7 @@
   <meta id="repository-name" content="github.com/calebuharrison/CrystGLFW">
   <link href="../../css/style.css" rel="stylesheet" type="text/css" />
   <script type="text/javascript" src="../../js/doc.js"></script>
-  <title>CrystGLFW::Event::JoystickToggleConnection - github.com/calebuharrison/CrystGLFW</title>
+  <title>CrystGLFW::Error::KeyNotPrintable - github.com/calebuharrison/CrystGLFW</title>
 </head>
 <body>
 
@@ -25,7 +25,7 @@
       
         <ul>
   
-  <li class="parent " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Error" data-name="crystglfw::error">
+  <li class="parent open current" data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Error" data-name="crystglfw::error">
       <a href="../../CrystGLFW/Error.html">Error</a>
       
         <ul>
@@ -60,7 +60,7 @@
       
     </li>
   
-  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Error/KeyNotPrintable" data-name="crystglfw::error::keynotprintable">
+  <li class=" current" data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Error/KeyNotPrintable" data-name="crystglfw::error::keynotprintable">
       <a href="../../CrystGLFW/Error/KeyNotPrintable.html">KeyNotPrintable</a>
       
     </li>
@@ -110,7 +110,7 @@
       
     </li>
   
-  <li class="parent open current" data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Event" data-name="crystglfw::event">
+  <li class="parent " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Event" data-name="crystglfw::event">
       <a href="../../CrystGLFW/Event.html">Event</a>
       
         <ul>
@@ -120,7 +120,7 @@
       
     </li>
   
-  <li class=" current" data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Event/JoystickToggleConnection" data-name="crystglfw::event::joysticktoggleconnection">
+  <li class=" " data-id="github.com/calebuharrison/CrystGLFW/CrystGLFW/Event/JoystickToggleConnection" data-name="crystglfw::event::joysticktoggleconnection">
       <a href="../../CrystGLFW/Event/JoystickToggleConnection.html">JoystickToggleConnection</a>
       
     </li>
@@ -377,19 +377,19 @@
 <div id="main-content">
 <h1 class="type-name">
 
-  <span class="kind">struct</span> CrystGLFW::Event::JoystickToggleConnection
+  <span class="kind">class</span> CrystGLFW::Error::KeyNotPrintable
 
 </h1>
 
 
-  <ul class="superclass-hierarchy"><li class="superclass"><a href="../../CrystGLFW/Event/JoystickToggleConnection.html">CrystGLFW::Event::JoystickToggleConnection</a></li><li class="superclass"><a href="../../CrystGLFW/Event/Any.html">CrystGLFW::Event::Any</a></li><li class="superclass">Struct</li><li class="superclass">Value</li><li class="superclass">Object</li></ul>
+  <ul class="superclass-hierarchy"><li class="superclass"><a href="../../CrystGLFW/Error/KeyNotPrintable.html">CrystGLFW::Error::KeyNotPrintable</a></li><li class="superclass"><a href="../../CrystGLFW/Error/Any.html">CrystGLFW::Error::Any</a></li><li class="superclass">Exception</li><li class="superclass">Reference</li><li class="superclass">Object</li></ul>
 
 
 
 
   <h2>Overview</h2>
 
-  <p>Represents an event wherein a joystick is either connected or disconnected from the system.</p>
+  <p>Caller assumed key was printable without making a <code><a href="../../CrystGLFW/Key.html#printable%3F%3ABool-instance-method">CrystGLFW::Key#printable?</a></code> check.</p>
 
 
 
@@ -407,7 +407,7 @@
   <h2>Defined in:</h2>
   
     
-      <a href="https://github.com/calebuharrison/CrystGLFW/blob/634017e023db69a533ba4ff0dd9dbc3aa3affda8/src/crystglfw/events/joystick_toggle_connection.cr#L4" target="_blank">crystglfw/events/joystick_toggle_connection.cr</a>
+      <a href="https://github.com/calebuharrison/CrystGLFW/blob/634017e023db69a533ba4ff0dd9dbc3aa3affda8/src/crystglfw/errors/key_not_printable.cr#L4" target="_blank">crystglfw/errors/key_not_printable.cr</a>
     
     <br/>
   
@@ -420,21 +420,6 @@
 
 
 
-  <h2>Instance Method Summary</h2>
-  <ul class="list-summary">
-    
-      <li class="entry-summary">
-        <a href="#connected%3F%3ABool-instance-method" class="signature"><strong>#connected?</strong> : Bool</a>
-        
-      </li>
-    
-      <li class="entry-summary">
-        <a href="#joystick%3ACrystGLFW%3A%3AJoystick-instance-method" class="signature"><strong>#joystick</strong> : CrystGLFW::Joystick</a>
-        
-      </li>
-    
-  </ul>
-
 
 
 
@@ -446,10 +431,10 @@
 
     
 
-  <h3>Constructor methods inherited from struct <code><a href="../../CrystGLFW/Event/Any.html">CrystGLFW::Event::Any</a></code></h3>
+  <h3>Constructor methods inherited from class <code><a href="../../CrystGLFW/Error/Any.html">CrystGLFW::Error::Any</a></code></h3>
   
   
-    <a href="../../CrystGLFW/Event/Any.html#new-class-method" class="tooltip">
+    <a href="../../CrystGLFW/Error/Any.html#new-class-method" class="tooltip">
       <span>new</span>
     new</a>
     
@@ -496,41 +481,6 @@
 
 
 
-
-  <h2>Instance Method Detail</h2>
-  
-    <div class="entry-detail" id="connected?:Bool-instance-method">
-      <div class="signature">
-        
-        def <strong>connected?</strong> : Bool
-
-        <a class="method-permalink" href="#connected%3F%3ABool-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-          [<a href="https://github.com/calebuharrison/CrystGLFW/blob/634017e023db69a533ba4ff0dd9dbc3aa3affda8/src/crystglfw/events/joystick_toggle_connection.cr#L11" target="_blank">View source</a>]
-        
-      </div>
-    </div>
-  
-    <div class="entry-detail" id="joystick:CrystGLFW::Joystick-instance-method">
-      <div class="signature">
-        
-        def <strong>joystick</strong> : <a href="../../CrystGLFW/Joystick.html">CrystGLFW::Joystick</a>
-
-        <a class="method-permalink" href="#joystick%3ACrystGLFW%3A%3AJoystick-instance-method">#</a>
-      </div>
-      
-      <br/>
-      <div>
-        
-          [<a href="https://github.com/calebuharrison/CrystGLFW/blob/634017e023db69a533ba4ff0dd9dbc3aa3affda8/src/crystglfw/events/joystick_toggle_connection.cr#L5" target="_blank">View source</a>]
-        
-      </div>
-    </div>
-  
 
 
 

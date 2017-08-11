@@ -43,6 +43,10 @@ module CrystGLFW
     # This allows multiple windows to reference the same cursor object.
     @@cursor_registry = {} of Pointer(LibGLFW::Window) => Cursor
 
+    # A title registry that maps a unique LibGLFW Window pointer to its title, which is not retrievable by GLFW.
+    # This allows multiple window objects to reference the same underlying GLFW window and retrieve its title.
+    @@title_registry = {} of Pointer(LibGLFW::Window) => String
+
     # Returns the window whose context is current.
     #
     # ```
@@ -51,13 +55,25 @@ module CrystGLFW
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def self.current : Window
-      new(LibGLFW.get_current_context)
+      candidate = LibGLFW.get_current_context
+      if candidate.null?
+        raise Error.generate(:no_current_context)
+      else
+        new(LibGLFW.get_current_context)
+      end
     end
 
     # :nodoc:
-    def self.set_hints(hints : Hash(Symbol, Int32 | Symbol))
+    def self.set_hints(hints : Hash(Symbol, Int32 | Symbol | Bool))
       hints.each do |key, value|
-        hint_value = value.is_a?(Symbol) ? CrystGLFW[value] : value
+        hint_value = nil
+        if value.is_a? Symbol
+          hint_value = CrystGLFW[value]
+        elsif value.is_a? Int32
+          hint_value = value
+        else
+          hint_value = value == true ? CrystGLFW[:true] : CrystGLFW[:false]
+        end
         LibGLFW.window_hint CrystGLFW[key], hint_value
       end
     end
@@ -79,7 +95,7 @@ module CrystGLFW
     # - *height*, the desired height of the window in screen coordinates.
     # - *title*, the title of the window.
     # - *monitor*, the monitor to use for full screen mode. If left blank, the context will run in windowed mode.
-    # - *sharing_window*, the window whose context to share resource with. If left blank, no resource sharing occurs.
+    # - *sharing_window*, the window whose context to share resources with. If left blank, no resource sharing occurs.
     # - *hints*, the desired window options. If left blank, GLFW defaults will be used.
     #
     # There are several different kinds of hints that can be set, all of which can be found in the GLFW documentation.
@@ -96,6 +112,7 @@ module CrystGLFW
     def initialize(width = 640, height = 480, title = "", monitor = nil, sharing_window = nil, hints = nil)
       Window.set_hints(hints) if hints
       @handle = LibGLFW.create_window width, height, title, monitor, sharing_window
+      @@title_registry[@handle] = title
       Window.clear_hints if hints
       initialize_callbacks unless @@callback_registry[@handle]?
     end
@@ -106,12 +123,13 @@ module CrystGLFW
       initialize_callbacks unless @@callback_registry[@handle]?
     end
 
-    # Destroys the underlying GLFW Window and removes it from the callback registry.
+    # Destroys the underlying GLFW Window.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def destroy
       remove_cursor
       @@callback_registry.delete @handle
+      @@title_registry.delete @handle
       LibGLFW.destroy_window @handle
     end
 
@@ -152,6 +170,18 @@ module CrystGLFW
       LibGLFW.set_window_should_close @handle, CrystGLFW[:false]
     end
 
+    # Returns the window's title.
+    #
+    # ```
+    # window.title = "Test Title"
+    # window.title # => "Test Title"
+    # ```
+    #
+    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
+    def title : String
+      @@title_registry[@handle]
+    end
+
     # Sets the window's title.
     #
     # ```
@@ -167,6 +197,7 @@ module CrystGLFW
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def set_title(title : String)
       LibGLFW.set_window_title @handle, title
+      @@title_registry[@handle] = title
     end
 
     # Alternate syntax for `#set_title`.
@@ -183,7 +214,7 @@ module CrystGLFW
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def title=(title : String)
-      LibGLFW.set_window_title @handle, title
+      set_title title
     end
 
     # Returns the position of the window, in screen coordinates, as a named tuple.
@@ -227,7 +258,7 @@ module CrystGLFW
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def position=(pos : NamedTuple(x: Int32, y: Int32))
-      LibGLFW.set_window_pos @handle, pos[:x], pos[:y]
+      set_position pos[:x], pos[:y]
     end
 
     # Returns the size of the window, in screen coordinates, as a named tuple.
@@ -267,11 +298,11 @@ module CrystGLFW
     # ```
     #
     # This method accepts the following arguments:
-    # - *size*, the desired size of the window.
+    # - *s*, the desired size of the window.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def size=(size : NamedTuple(width: Int32, height: Int32))
-      LibGLFW.set_window_size @handle, size[:width], size[:height]
+    def size=(s : NamedTuple(width: Int32, height: Int32))
+      set_size s[:width], s[:height]
     end
 
     # Returns the corners of the window.
@@ -346,9 +377,7 @@ module CrystGLFW
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def contains?(coordinates : NamedTuple(x: Number, y: Number)) : Bool
-      c, x, y = corners, coordinates[:x], coordinates[:y]
-      tl, br = c[:top_left], c[:bottom_right]
-      x >= tl[:x] && x <= br[:x] && y >= tl[:y] && y <= br[:y]
+      contains? coordinates[:x], coordinates[:y]
     end
 
     # Sets the size limits of the window.
@@ -387,8 +416,7 @@ module CrystGLFW
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def size_limits=(limits : NamedTuple(min_width: Int32, min_height: Int32,
                      max_width: Int32, max_height: Int32))
-      LibGLFW.set_window_size_limits @handle, limits[:min_width], limits[:min_height],
-        limits[:max_width], limits[:max_height]
+      set_size_limits limits[:min_width], limits[:min_height], limits[:max_width], limits[:max_height]
     end
 
     # Sets the aspect ratio of the window.
@@ -419,7 +447,7 @@ module CrystGLFW
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def aspect_ratio=(ratio : NamedTuple(numerator: Int32, denominator: Int32))
-      LibGLFW.set_aspect_ratio @handle, ratio[:numerator], ratio[:denominator]
+      set_aspect_ratio ratio[:numerator], ratio[:denominator]
     end
 
     # Returns the size of the framebuffer.
@@ -509,8 +537,13 @@ module CrystGLFW
     # Returns the window's monitor if the window is in fullscreen mode. Returns nil otherwise.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def monitor : Monitor | Nil
-      LibGLFW.get_window_monitor(@handle)
+    def monitor : Monitor
+      monitor_candidate = LibGLFW.get_window_monitor(@handle)
+      if monitor_candidate.null?
+        raise Error.generate(:not_full_screen)
+      else
+        Monitor.new(monitor_candidate)
+      end
     end
 
     # Sets the monitor used for full screen mode.
@@ -525,22 +558,20 @@ module CrystGLFW
     # The monitor's current video mode is used when the window is made full-screen.
     #
     # This method accepts the following arguments:
-    # - *monitor*, the monitor that will be used for full screen mode.
+    # - *mon*, the monitor that will be used for full screen mode.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def set_monitor(monitor : CrystGLFW::Monitor)
-      video_mode = monitor.video_mode
-      LibGLFW.set_window_monitor @handle, monitor, CrystGLFW[:dont_care], CrystGLFW[:dont_care],
+    def set_monitor(mon : CrystGLFW::Monitor)
+      video_mode = mon.video_mode
+      LibGLFW.set_window_monitor @handle, mon, CrystGLFW[:dont_care], CrystGLFW[:dont_care],
         video_mode.width, video_mode.height, video_mode.refresh_rate
     end
 
     # Alternate syntax for `#set_monitor`
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def monitor=(monitor : CrystGLFW::Monitor)
-      video_mode = monitor.video_mode
-      LibGLFW.set_window_monitor @handle, monitor, CrystGLFW[:dont_care], CrystGLFW[:dont_care],
-        video_mode.width, video_mode.height, video_mode.refresh_rate
+    def monitor=(mon : CrystGLFW::Monitor)
+      set_monitor mon
     end
 
     # Exits full screen mode and enters windowed mode with the given settings.
@@ -563,6 +594,44 @@ module CrystGLFW
       LibGLFW.set_window_monitor @handle, nil, x, y, width, height, CrystGLFW[:dont_care]
     end
 
+    # Checks to see if the given key is pressed according to this window.
+    #
+    # ```
+    # key = event.key
+    # if window.key_pressed?(key)
+    #   puts "key is pressed!"
+    # end
+    # ```
+    #
+    # The key's state is affected by sticky keys.
+    #
+    # This method accepts the following arguments:
+    # - *key*, the key to check.
+    #
+    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
+    def key_pressed?(key : CrystGLFW::Key)
+      LibGLFW.get_key(@handle, key) == CrystGLFW[:press]
+    end
+
+    # Checks to see if the given mouse button is pressed according to this window.
+    #
+    # ```
+    # mouse_button = event.mouse_button
+    # if window.mouse_button_pressed?(mouse_button)
+    #   puts "mouse button is pressed!"
+    # end
+    # ```
+    #
+    # The mouse button's state is affected by sticky mouse buttons.
+    #
+    # This method accepts the following arguments:
+    # - *mouse_button*, the mouse button to check.
+    #
+    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
+    def mouse_button_pressed?(mouse_button : CrystGLFW::MouseButton)
+      LibGLFW.get_mouse_button(@handle, mouse_button) == CrystGLFW[:press]
+    end
+
     # Sets the window's icon.
     #
     # TODO: Add an example here.
@@ -579,7 +648,7 @@ module CrystGLFW
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def icon=(icon : Image)
-      LibGLFW.set_window_icon @handle, 1, image
+      set_icon icon
     end
 
     # Returns true if the window is focused. False otherwise.
@@ -702,46 +771,76 @@ module CrystGLFW
       LibGLFW.set_cursor @handle, nil
     end
 
-    # Returns the current cursor mode's label.
+    # Returns true if the window's cursor mode is normal. False otherwise.
     #
     # ```
-    # case window.cursor_mode
-    # when :cursor_normal
-    #   puts "The cursor is normal!"
-    # when :cursor_hidden
-    #   puts "The cursor is hidden!"
-    # when :cursor_disable
-    #   puts "The cursor is disabled!"
+    # if window.cursor_normal?
+    #   puts "The window's cursor mode is normal!"
     # end
     # ```
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def cursor_mode : Symbol
-      value = LibGLFW.get_input_mode @handle, CrystGLFW[:cursor]
-      [:cursor_normal, :cursor_hidden, :cursor_disable].find { |option| CrystGLFW[option] == value }
+    def cursor_normal?
+      CrystGLFW[:cursor_normal] == LibGLFW.get_input_mode(@handle, CrystGLFW[:cursor])
     end
 
-    # Sets the window's cursor mode.
+    # Returns true if the window's cursor mode is hidden. False otherwise.
     #
     # ```
-    # # Sets the cursor mode to normal.
-    # window.set_cursor_mode :cursor_normal
-    #
-    # # Sets the cursor mode to hidden.
-    # window.set_cursor_mode :cursor_hidden
-    #
-    # # Sets the cursor mode to disabled.
-    # window.set_cursor_mode :cursor_disable
+    # if window.cursor_hidden?
+    #   puts "The window's cursor mode is hidden!"
+    # end
     # ```
-    #
-    # This method accepts the following arguments:
-    # - *label*, the label of the desired cursor mode.
-    #
-    # *label* can be one of the following: :cursor_normal, :cursor_hidden, :cursor_disable
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def set_cursor_mode(label : Symbol)
-      LibGLFW.set_input_mode @handle, CrystGLFW[:cursor], CrystGLFW[label]
+    def cursor_hidden?
+      CrystGLFW[:cursor_hidden] == LibGLFW.get_input_mode(@handle, CrystGLFW[:cursor])
+    end
+
+    # Returns true if the window's cursor mode is disabled. False otherwise.
+    #
+    # ```
+    # if window.cursor_disabled?
+    #   puts "The window's cursor mode is disabled!"
+    # end
+    # ```
+    #
+    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
+    def cursor_disabled?
+      CrystGLFW[:cursor_disable] == LibGLFW.get_input_mode(@handle, CrystGLFW[:cursor])
+    end
+
+    # Sets the cursor mode to normal.
+    #
+    # ```
+    # window.normalize_cursor
+    # ```
+    #
+    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
+    def normalize_cursor
+      LibGLFW.set_input_mode @handle, CrystGLFW[:cursor], CrystGLFW[:cursor_normal]
+    end
+
+    # Sets the cursor mode to hidden.
+    #
+    # ```
+    # window.hide_cursor
+    # ```
+    #
+    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
+    def hide_cursor
+      LibGLFW.set_input_mode @handle, CrystGLFW[:cursor], CrystGLFW[:cursor_hidden]
+    end
+
+    # Sets the cursor mode to disabled.
+    #
+    # ```
+    # window.disable_cursor
+    # ```
+    #
+    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
+    def disable_cursor
+      LibGLFW.set_input_mode @handle, CrystGLFW[:cursor], CrystGLFW[:cursor_disable]
     end
 
     # Returns true if sticky keys are enabled. False otherwise.
