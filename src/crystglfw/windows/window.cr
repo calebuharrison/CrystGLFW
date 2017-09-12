@@ -1063,7 +1063,7 @@ module CrystGLFW
       callback = LibGLFW::Mousebuttonfun.new do |handle, button, action, modifiers|
         win = Window.new(handle)
         mouse_button = MouseButton.new(button)
-        event = Event::WindowMouseButton.new(win, mouse_buton, action, modifiers)
+        event = Event::WindowMouseButton.new(win, mouse_button, action, modifiers)
         @@callback_registry[handle][:mouse_button].as(MouseButtonCallback).try &.call(event)
       end
       LibGLFW.set_mouse_button_callback @handle, callback
