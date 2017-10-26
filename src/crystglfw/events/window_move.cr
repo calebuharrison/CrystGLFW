@@ -2,12 +2,14 @@ module CrystGLFW
   module Event
     # Represents an event wherein a window is moved to a new location.
     struct WindowMove < Any
-      getter window : CrystGLFW::Window
-      getter x : Int32
-      getter y : Int32
+      getter window : Window
 
       # :nodoc:
-      def initialize(@window, @x, @y)
+      def initialize(@window : Window, @x : Int32, @y : Int32)
+      end
+
+      def position : NamedTuple(x: Int32, y: Int32)
+        { x: @x, y: @y }
       end
     end
   end

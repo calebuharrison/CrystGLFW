@@ -5,51 +5,18 @@ module CrystGLFW
     struct WindowKey < Any
       include Modifiers
 
-      @action_code : Int32
-
-      getter window : CrystGLFW::Window
-      getter key : CrystGLFW::Key
+      getter window : Window
+      getter key    : Key
+      getter action : Action
 
       # :nodoc:
-      def initialize(window : Window, key : Key, action_code : Int32, modifiers : Int32)
+      def initialize(window : Window, key : Key, action : Action, modifiers : Int32)
         @window = window
-        @key = key
-        @action_code = action_code
+        @key    = key
+        @action = action
         set_modifiers modifiers
       end
 
-      # Returns true if the key was pressed. False otherwise.
-      #
-      # ```
-      # window.on_key do |key_event|
-      #   puts "a key was pressed." if key_event.press?
-      # end
-      # ```
-      def press?
-        @action_code == CrystGLFW[:press]
-      end
-
-      # Returns true if the key was released. False otherwise.
-      #
-      # ```
-      # window.on_key do |key_event|
-      #   puts "a key was released." if key_event.release?
-      # end
-      # ```
-      def release?
-        @action_code == CrystGLFW[:release]
-      end
-
-      # Returns true if the key was held down. False otherwise.
-      #
-      # ```
-      # window.on_key do |key_event|
-      #   puts "a key was held down." if key_event.repeat?
-      # end
-      # ```
-      def repeat?
-        @action_code == CrystGLFW[:repeat]
-      end
     end
   end
 end

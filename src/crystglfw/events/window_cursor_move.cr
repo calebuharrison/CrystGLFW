@@ -2,13 +2,15 @@ module CrystGLFW
   module Event
     # Represents an event wherein a window's cursor is moved to a new location.
     struct WindowCursorMove < Any
-      getter window : CrystGLFW::Window
-      getter cursor : CrystGLFW::Window::Cursor
-      getter x : Float64
-      getter y : Float64
+      getter window : Window
+      getter cursor : Window::Cursor
 
       # :nodoc:
-      def initialize(@window, @cursor, @x, @y)
+      def initialize(@window : Window, @cursor : Window::Cursor, @x : Float64, @y : Float64)
+      end
+
+      def position : NamedTuple(x: Float64, y: Float64)
+        { x: @x, y: @y }
       end
     end
   end

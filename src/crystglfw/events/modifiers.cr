@@ -2,16 +2,16 @@ module CrystGLFW
   module Event
     # The Modifiers module encapsulates the instance variables and interfaces for Events that support modifier keys.
     module Modifiers
-      @mod_shift : Bool = false
-      @mod_control : Bool = false
-      @mod_alt : Bool = false
-      @mod_super : Bool = false
+      @mod_shift    : Bool = false
+      @mod_control  : Bool = false
+      @mod_alt      : Bool = false
+      @mod_super    : Bool = false
 
       private def set_modifiers(modifiers : Int32)
-        @mod_shift = modifiers.bit(0) == 1
-        @mod_control = modifiers.bit(1) == 1
-        @mod_alt = modifiers.bit(2) == 1
-        @mod_super = modifiers.bit(3) == 1
+        @mod_shift    = modifiers.bit(0) == 1
+        @mod_control  = modifiers.bit(1) == 1
+        @mod_alt      = modifiers.bit(2) == 1
+        @mod_super    = modifiers.bit(3) == 1
       end
 
       # Returns true if the shift key was held down as a modifier. False otherwise.

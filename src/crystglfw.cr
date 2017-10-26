@@ -1,12 +1,15 @@
 require "./crystglfw/**"
+require "lib_glfw"
 
 module CrystGLFW
   extend self
 
+  DONT_CARE = LibGLFW::DONT_CARE
+
   alias ErrorCallback = Proc(Int32, Nil)
 
   @@error_callback = ErrorCallback.new do |error_code|
-    raise Error.generate(error_code)
+    Error.new(error_code).raise
   end
 
   # Sets the error callback that is called when an error occurs in LibGLFW.
@@ -70,7 +73,7 @@ module CrystGLFW
   # triggering an error.
   def self.version : NamedTuple(major: Int32, minor: Int32, rev: Int32)
     LibGLFW.get_version(out major, out minor, out rev)
-    {major: major, minor: minor, rev: rev}
+    { major: major, minor: minor, rev: rev }
   end
 
   # Returns the compile-time generated version string of GLFW.
@@ -92,7 +95,7 @@ module CrystGLFW
   # ```
   #
   # NOTE: This method must be called inside a `#run` block definition.
-  def self.time : Number
+  def self.time : Float64
     LibGLFW.get_time
   end
 
@@ -123,7 +126,7 @@ module CrystGLFW
   #
   # NOTE: This method must be called from within a `#run` block definition.
   def self.time=(t : Number)
-    LibGLFW.set_time t
+    self.set_time t
   end
 
   # Returns the current value of the raw timer, measured in 1 / `#timer_frequency` seconds.
@@ -133,7 +136,7 @@ module CrystGLFW
   # ```
   #
   # NOTE: This method must be called inside a `#run` block definition.
-  def self.timer_value : Number
+  def self.timer_value : UInt64
     LibGLFW.get_timer_value
   end
 
@@ -144,7 +147,7 @@ module CrystGLFW
   # ```
   #
   # NOTE: This method must be called inside a `#run` block definition.
-  def self.timer_frequency : Number
+  def self.timer_frequency : UInt64
     LibGLFW.get_timer_frequency
   end
 

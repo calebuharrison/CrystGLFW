@@ -2,7 +2,7 @@ require "lib_glfw"
 
 module CrystGLFW
   # A Window represents a GLFW Window and its associated OpenGL context.
-  struct Window
+  class Window
     alias MoveCallback = Proc(Event::WindowMove, Nil)
     alias ResizeCallback = Proc(Event::WindowResize, Nil)
     alias CloseCallback = Proc(Event::WindowClose, Nil)
@@ -17,35 +17,26 @@ module CrystGLFW
     alias CursorCrossThresholdCallback = Proc(Event::WindowCursorCrossThreshold, Nil)
     alias CursorMoveCallback = Proc(Event::WindowCursorMove, Nil)
     alias FileDropCallback = Proc(Event::WindowFileDrop, Nil)
+    alias HintValue = ClientAPI | ContextAPI | ContextRobustness | OpenGLProfile | ReleaseBehavior | Sticky | Version | Int32 | Bool
 
-    alias WindowCallback = MoveCallback |
-                           ResizeCallback |
-                           CloseCallback |
-                           RefreshCallback |
-                           ToggleFocusCallback |
-                           ToggleIconificationCallback |
-                           FramebufferResizeCallback |
-                           KeyCallback |
-                           CharCallback |
-                           MouseButtonCallback |
-                           ScrollCallback |
-                           CursorCrossThresholdCallback |
-                           CursorMoveCallback |
-                           FileDropCallback |
-                           Nil
+    @@instances = Hash(Pointer(LibGLFW::Window), Window).new
 
-    # A callback registry that maps a unique LibGLFW Window pointer to a callback.
-    # This allows multiple window objects to reference the same underlying GLFW window and
-    # define callbacks for it universally.
-    @@callback_registry = {} of Pointer(LibGLFW::Window) => Hash(Symbol, WindowCallback)
+    @move_callback                    : MoveCallback                  | Nil
+    @resize_callback                  : ResizeCallback                | Nil
+    @close_callback                   : CloseCallback                 | Nil
+    @refresh_callback                 : RefreshCallback               | Nil
+    @toggle_focus_callback            : ToggleFocusCallback           | Nil
+    @toggle_iconification_callback    : ToggleIconificationCallback   | Nil
+    @framebuffer_resize_callback      : FramebufferResizeCallback     | Nil
+    @key_callback                     : KeyCallback                   | Nil
+    @char_callback                    : CharCallback                  | Nil
+    @mouse_button_callback            : MouseButtonCallback           | Nil
+    @scroll_callback                  : ScrollCallback                | Nil
+    @cursor_cross_threshold_callback  : CursorCrossThresholdCallback  | Nil
+    @cursor_move_callback             : CursorMoveCallback            | Nil
+    @file_drop_callback               : FileDropCallback              | Nil
 
-    # A cursor registry that maps a unique LibGLFW Window pointer to a cursor object.
-    # This allows multiple windows to reference the same cursor object.
-    @@cursor_registry = {} of Pointer(LibGLFW::Window) => Cursor
-
-    # A title registry that maps a unique LibGLFW Window pointer to its title, which is not retrievable by GLFW.
-    # This allows multiple window objects to reference the same underlying GLFW window and retrieve its title.
-    @@title_registry = {} of Pointer(LibGLFW::Window) => String
+    @cursor : Cursor | Nil
 
     # Returns the window whose context is current.
     #
@@ -57,24 +48,22 @@ module CrystGLFW
     def self.current : Window
       candidate = LibGLFW.get_current_context
       if candidate.null?
-        raise Error.generate(:no_current_context)
+        Error::NoCurrentContext.raise
       else
-        new(LibGLFW.get_current_context)
+        Window.from(candidate)
       end
     end
 
     # :nodoc:
-    def self.set_hints(hints : Hash(Symbol, Int32 | Symbol | Bool))
+    def self.set_hints(hints : Hash(HintLabel, HintValue))
       hints.each do |key, value|
         hint_value = nil
-        if value.is_a? Symbol
-          hint_value = CrystGLFW[value]
-        elsif value.is_a? Int32
-          hint_value = value
+        if value.is_a? Bool
+          hint_value = value.hash
         else
-          hint_value = value == true ? CrystGLFW[:true] : CrystGLFW[:false]
+          hint_value = value
         end
-        LibGLFW.window_hint CrystGLFW[key], hint_value
+        LibGLFW.window_hint key, hint_value
       end
     end
 
@@ -102,7 +91,13 @@ module CrystGLFW
     # To specify hints for window creation, create a hash:
     #
     # ```
-    # hints = {:client_api => :opengl_es_api, :context_version_major => 3}
+    # hints = {
+    #   Window::HintLabel::ContextVersionMajor => 3,
+    #   Window::HintLabel::ContextVersionMinor => 3,
+    #   Window::HintLabel::OpenGLForwardCompat => true,
+    #   Window::HintLabel::ClientAPI => ClientAPI::OpenGL,
+    #   Window::HintLabel::OpenGLProfile => OpenGLProfile::Core
+    # }
     # window = CrystGLFW::Window.new(title: "My Window", monitor: CrystGLFW::Monitor.primary, hints: hints)
     # ```
     #
@@ -112,15 +107,13 @@ module CrystGLFW
     def initialize(width = 640, height = 480, title = "", monitor = nil, sharing_window = nil, hints = nil)
       Window.set_hints(hints) if hints
       @handle = LibGLFW.create_window width, height, title, monitor, sharing_window
-      @@title_registry[@handle] = title
       Window.clear_hints if hints
-      initialize_callbacks unless @@callback_registry[@handle]?
+      @@instances[@handle] = self
     end
 
     # :nodoc:
-    def initialize(handle : Pointer(LibGLFW::Window))
-      @handle = handle
-      initialize_callbacks unless @@callback_registry[@handle]?
+    def self.from(handle : Pointer(LibGLFW::Window))
+      @@instances[handle]
     end
 
     # Destroys the underlying GLFW Window.
@@ -128,8 +121,7 @@ module CrystGLFW
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def destroy
       remove_cursor
-      @@callback_registry.delete @handle
-      @@title_registry.delete @handle
+      @@instances.delete @handle
       LibGLFW.destroy_window @handle
     end
 
@@ -144,7 +136,7 @@ module CrystGLFW
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def should_close? : Bool
-      LibGLFW.window_should_close(@handle) == CrystGLFW[:true]
+      LibGLFW.window_should_close(@handle) == true.hash
     end
 
     # Marks this window for closing.
@@ -160,26 +152,14 @@ module CrystGLFW
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def should_close
-      LibGLFW.set_window_should_close @handle, CrystGLFW[:true]
+      LibGLFW.set_window_should_close @handle, true.hash
     end
 
     # The exact opposite of `#should_close`.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def should_not_close
-      LibGLFW.set_window_should_close @handle, CrystGLFW[:false]
-    end
-
-    # Returns the window's title.
-    #
-    # ```
-    # window.title = "Test Title"
-    # window.title # => "Test Title"
-    # ```
-    #
-    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def title : String
-      @@title_registry[@handle]
+      LibGLFW.set_window_should_close @handle, false.hash
     end
 
     # Sets the window's title.
@@ -197,7 +177,6 @@ module CrystGLFW
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def set_title(title : String)
       LibGLFW.set_window_title @handle, title
-      @@title_registry[@handle] = title
     end
 
     # Alternate syntax for `#set_title`.
@@ -227,7 +206,7 @@ module CrystGLFW
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def position : NamedTuple(x: Int32, y: Int32)
       LibGLFW.get_window_pos @handle, out x, out y
-      {x: x, y: y}
+      { x: x, y: y }
     end
 
     # Sets the position of the window.
@@ -271,7 +250,7 @@ module CrystGLFW
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def size : NamedTuple(width: Int32, height: Int32)
       LibGLFW.get_window_size @handle, out width, out height
-      {width: width, height: height}
+      { width: width, height: height }
     end
 
     # Sets the size of the window.
@@ -327,12 +306,12 @@ module CrystGLFW
     top_right: NamedTuple(x: Int32, y: Int32),
     bottom_left: NamedTuple(x: Int32, y: Int32),
     bottom_right: NamedTuple(x: Int32, y: Int32))
-      p, s = position, size
+      p, s = self.position, self.size
       tl = p
-      br = {x: (tl[:x] + s[:width]), y: (tl[:y] + s[:height])}
-      tr = {x: br[:x], y: tl[:y]}
-      bl = {x: tl[:x], y: br[:y]}
-      {top_left: tl, top_right: tr, bottom_right: br, bottom_left: bl}
+      br = { x: (tl[:x] + s[:width]), y: (tl[:y] + s[:height]) }
+      tr = { x: br[:x], y: tl[:y] }
+      bl = { x: tl[:x], y: br[:y] }
+      { top_left: tl, top_right: tr, bottom_right: br, bottom_left: bl }
     end
 
     # Returns true if the window contains the given coordinates. False otherwise.
@@ -354,7 +333,7 @@ module CrystGLFW
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def contains?(x : Number, y : Number) : Bool
-      c = corners
+      c = self.corners
       tl, br = c[:top_left], c[:bottom_right]
       x >= tl[:x] && x <= br[:x] && y >= tl[:y] && y <= br[:y]
     end
@@ -397,8 +376,8 @@ module CrystGLFW
     # - *max_height*, the maximum height of the window, in screen coordinates.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def set_size_limits(min_width : Int32 = CrystGLFW[:dont_care], min_height : Int32 = CrystGLFW[:dont_care],
-                        max_width : Int32 = CrystGLFW[:dont_care], max_height : Int32 = CrystGLFW[:dont_care])
+    def set_size_limits(min_width : Int32 = CrystGLFW::DONT_CARE, min_height : Int32 = CrystGLFW::DONT_CARE,
+                        max_width : Int32 = CrystGLFW::DONT_CARE, max_height : Int32 = CrystGLFW::DONT_CARE)
       LibGLFW.set_window_size_limits @handle, min_width, min_height, max_width, max_height
     end
 
@@ -431,7 +410,7 @@ module CrystGLFW
     # - *denominator*, the denominator of the aspect ratio.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def set_aspect_ratio(numerator : Int32 = CrystGLFW[:dont_care], denominator : Int32 = CrystGLFW[:dont_care])
+    def set_aspect_ratio(numerator : Int32 = CrystGLFW::DONT_CARE, denominator : Int32 = CrystGLFW::DONT_CARE)
       LibGLFW.set_aspect_ratio @handle, numerator, denominator
     end
 
@@ -463,7 +442,7 @@ module CrystGLFW
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def framebuffer_size : NamedTuple(width: Int32, height: Int32)
       LibGLFW.get_framebuffer_size @handle, out width, out height
-      {width: width, height: height}
+      { width: width, height: height }
     end
 
     # Returns the size of the window's frame at each of its edges in screen coordinates.
@@ -481,7 +460,7 @@ module CrystGLFW
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def frame_size : NamedTuple(left: Int32, top: Int32, right: Int32, bottom: Int32)
       LibGLFW.get_window_frame_size @handle, out left, out top, out right, out bottom
-      {left: left, top: top, right: right, bottom: bottom}
+      { left: left, top: top, right: right, bottom: bottom }
     end
 
     # Iconifies (minimizes) the window. The exact opposite of `#restore`.
@@ -534,13 +513,13 @@ module CrystGLFW
       !monitor_handle.nil?
     end
 
-    # Returns the window's monitor if the window is in fullscreen mode. Returns nil otherwise.
+    # Returns the window's monitor if the window is in fullscreen mode.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def monitor : Monitor
       monitor_candidate = LibGLFW.get_window_monitor(@handle)
       if monitor_candidate.null?
-        raise Error.generate(:not_full_screen)
+        Error::NotFullScreen.raise
       else
         Monitor.new(monitor_candidate)
       end
@@ -561,16 +540,16 @@ module CrystGLFW
     # - *mon*, the monitor that will be used for full screen mode.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def set_monitor(mon : CrystGLFW::Monitor)
+    def set_monitor(mon : Monitor)
       video_mode = mon.video_mode
-      LibGLFW.set_window_monitor @handle, mon, CrystGLFW[:dont_care], CrystGLFW[:dont_care],
+      LibGLFW.set_window_monitor @handle, mon, CrystGLFW::DONT_CARE, CrystGLFW::DONT_CARE,
         video_mode.width, video_mode.height, video_mode.refresh_rate
     end
 
     # Alternate syntax for `#set_monitor`
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def monitor=(mon : CrystGLFW::Monitor)
+    def monitor=(mon : Monitor)
       set_monitor mon
     end
 
@@ -591,7 +570,7 @@ module CrystGLFW
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def exit_full_screen(x : Int32 = 100, y : Int32 = 100, width : Int32 = 640, height : Int32 = 480)
-      LibGLFW.set_window_monitor @handle, nil, x, y, width, height, CrystGLFW[:dont_care]
+      LibGLFW.set_window_monitor @handle, nil, x, y, width, height, CrystGLFW::DONT_CARE
     end
 
     # Checks to see if the given key is pressed according to this window.
@@ -609,8 +588,8 @@ module CrystGLFW
     # - *key*, the key to check.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def key_pressed?(key : CrystGLFW::Key)
-      LibGLFW.get_key(@handle, key) == CrystGLFW[:press]
+    def key_pressed?(key : Key)
+      Action.new(LibGLFW.get_key(@handle, key)).press?
     end
 
     # Checks to see if the given mouse button is pressed according to this window.
@@ -628,8 +607,8 @@ module CrystGLFW
     # - *mouse_button*, the mouse button to check.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def mouse_button_pressed?(mouse_button : CrystGLFW::MouseButton)
-      LibGLFW.get_mouse_button(@handle, mouse_button) == CrystGLFW[:press]
+    def mouse_button_pressed?(mouse_button : MouseButton)
+      Action.new(LibGLFW.get_mouse_button(@handle, mouse_button)).press?
     end
 
     # Sets the window's icon.
@@ -655,49 +634,49 @@ module CrystGLFW
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def focused? : Bool
-      check_attribute :focused
+      check_state State::Focused
     end
 
     # Returns true if the window is iconified (minimized). False otherwise.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def iconified? : Bool
-      check_attribute :iconified
+      check_state State::Iconified
     end
 
     # Returns true if the window is maximized. False otherwise.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def maximized? : Bool
-      check_attribute :maximized
+      check_state State::Maximized
     end
 
     # Returns true if the window is visible. False otherwise.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def visible? : Bool
-      check_attribute :visible
+      check_state State::Visible
     end
 
     # Returns true if the window is resizable. False otherwise.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def resizable? : Bool
-      check_attribute :resizable
+      check_state State::Resizable
     end
 
     # Returns true if the window is decorated. False otherwise.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def decorated? : Bool
-      check_attribute :decorated
+      check_state State::Decorated
     end
 
     # Returns true if the window is floating. False otherwise.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def floating? : Bool
-      check_attribute :floating
+      check_state State::Floating
     end
 
     # Returns the window's current cursor or creates one if it does not exist.
@@ -707,36 +686,31 @@ module CrystGLFW
     # ```
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def cursor
-      @@cursor_registry[@handle]? ? @@cursor_registry[@handle] : Cursor.new(:arrow_cursor, self)
+    def cursor : Cursor
+      if @cursor.nil?
+        @cursor = Cursor.new(Cursor::Shape::Arrow, self) 
+      end
+      @cursor.as(Cursor)
     end
 
     # Creates a cursor for the window with the given shape.
     #
     # ```
     # # Creates a crosshair cursor
-    # cursor = window.cursor :crosshair_cursor
+    # cursor = window.cursor Window::Cursor::Shape::Crosshair
     #
     # # Creates an ibeam cursor
-    # cursor = window.cursor :ibeam_cursor
+    # cursor = window.cursor Window::Cursor::Shape::IBeam
     # ```
     #
     # This method accepts the following arguments:
-    # - *shape*, a symbol representing the desired shape of the cursor.
-    #
-    # *shape* can be one of the following values:
-    # - :arrow_cursor
-    # - :ibeam_cursor
-    # - :crosshair_cursor
-    # - :vresize_cursor
-    # - :hresize_cursor
-    # - :hand_cursor
+    # - *shape*, a CursorShape
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def cursor(shape : Symbol)
-      @@cursor_registry[@handle].destroy if @@cursor_registry[@handle]?
-      @@cursor_registry[@handle] = Cursor.new shape, self
-      @@cursor_registry[@handle]
+    def cursor(shape : Cursor::Shape) : Cursor
+      remove_cursor
+      @cursor = Cursor.new(shape, self)
+      @cursor.as(Cursor)
     end
 
     # Creates a cursor that looks like *image* with hotspot at (*x*, *y*).
@@ -752,10 +726,10 @@ module CrystGLFW
     # - *y*, the y-coordinate of the cursor hotspot, relative to the top-left corner of the image.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def cursor(image : Image, x : Int32, y : Int32)
-      @@cursor_registry[@handle].destroy if @@cursor_registry[@handle]?
-      @@cursor_registry[@handle] = Cursor.new image, x, y, self
-      @@cursor_registry[@handle]
+    def cursor(image : Image, x : Int32, y : Int32) : Cursor
+      remove_cursor
+      @cursor = Cursor.new(image, x, y, self)
+      @cursor.as(Cursor)
     end
 
     # Removes the window's current cursor.
@@ -766,125 +740,52 @@ module CrystGLFW
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def remove_cursor
-      @@cursor_registry[@handle].destroy if @@cursor_registry[@handle]?
-      @@cursor_registry.delete @handle
+      @cursor.try &.destroy
       LibGLFW.set_cursor @handle, nil
-    end
-
-    # Returns true if the window's cursor mode is normal. False otherwise.
-    #
-    # ```
-    # if window.cursor_normal?
-    #   puts "The window's cursor mode is normal!"
-    # end
-    # ```
-    #
-    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def cursor_normal?
-      CrystGLFW[:cursor_normal] == LibGLFW.get_input_mode(@handle, CrystGLFW[:cursor])
-    end
-
-    # Returns true if the window's cursor mode is hidden. False otherwise.
-    #
-    # ```
-    # if window.cursor_hidden?
-    #   puts "The window's cursor mode is hidden!"
-    # end
-    # ```
-    #
-    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def cursor_hidden?
-      CrystGLFW[:cursor_hidden] == LibGLFW.get_input_mode(@handle, CrystGLFW[:cursor])
-    end
-
-    # Returns true if the window's cursor mode is disabled. False otherwise.
-    #
-    # ```
-    # if window.cursor_disabled?
-    #   puts "The window's cursor mode is disabled!"
-    # end
-    # ```
-    #
-    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def cursor_disabled?
-      CrystGLFW[:cursor_disable] == LibGLFW.get_input_mode(@handle, CrystGLFW[:cursor])
-    end
-
-    # Sets the cursor mode to normal.
-    #
-    # ```
-    # window.normalize_cursor
-    # ```
-    #
-    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def normalize_cursor
-      LibGLFW.set_input_mode @handle, CrystGLFW[:cursor], CrystGLFW[:cursor_normal]
-    end
-
-    # Sets the cursor mode to hidden.
-    #
-    # ```
-    # window.hide_cursor
-    # ```
-    #
-    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def hide_cursor
-      LibGLFW.set_input_mode @handle, CrystGLFW[:cursor], CrystGLFW[:cursor_hidden]
-    end
-
-    # Sets the cursor mode to disabled.
-    #
-    # ```
-    # window.disable_cursor
-    # ```
-    #
-    # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
-    def disable_cursor
-      LibGLFW.set_input_mode @handle, CrystGLFW[:cursor], CrystGLFW[:cursor_disable]
     end
 
     # Returns true if sticky keys are enabled. False otherwise.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def sticky_keys? : Bool
-      value = LibGLFW.get_input_mode @handle, CrystGLFW[:sticky_keys]
-      value == CrystGLFW[:true]
+      value = LibGLFW.get_input_mode @handle, Sticky::Keys
+      value == true.hash
     end
 
     # Enables sticky keys.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def enable_sticky_keys
-      LibGLFW.set_input_mode @handle, CrystGLFW[:sticky_keys], CrystGLFW[:true]
+      LibGLFW.set_input_mode @handle, Sticky::Keys, true.hash
     end
 
     # Disables sticky keys.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def disable_sticky_keys
-      LibGLFW.set_input_mode @handle, CrystGLFW[:sticky_keys], CrystGLFW[:false]
+      LibGLFW.set_input_mode @handle, Sticky::Keys, false.hash
     end
 
     # Returns true if sticky mouse buttons are enabled. False otherwise.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def sticky_mouse_buttons? : Bool
-      value = LibGLFW.get_input_mode @handle, CrystGLFW[:sticky_mouse_buttons]
-      value == CrystGLFW[:true]
+      value = LibGLFW.get_input_mode @handle, Sticky::MouseButtons
+      value == true.hash
     end
 
     # Enables sticky mouse buttons.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def enable_sticky_mouse_buttons
-      LibGLFW.set_input_mode @handle, CrystGLFW[:sticky_mouse_buttons], CrystGLFW[:true]
+      LibGLFW.set_input_mode @handle, Sticky::MouseButtons, true.hash
     end
 
     # Disables sticky mouse buttons.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def disable_sticky_mouse_buttons
-      LibGLFW.set_input_mode @handle, CrystGLFW[:sticky_mouse_buttons], CrystGLFW[:false]
+      LibGLFW.set_input_mode @handle, Sticky::MouseButtons, false.hash
     end
 
     # Returns the contents of the system clipboard as a String.
@@ -950,27 +851,22 @@ module CrystGLFW
     end
 
     # :nodoc:
-    def ==(other : Window) : Bool
-      @handle == other.to_unsafe
-    end
-
-    # :nodoc:
     def to_unsafe : Pointer(LibGLFW::Window)
       @handle
     end
 
     # Checks a window attribute by label.
-    private def check_attribute(attribute_label : Symbol) : Bool
-      value = LibGLFW.get_window_attrib @handle, CrystGLFW[attribute_label]
-      value == CrystGLFW[:true]
+    private def check_state(state : State) : Bool
+      value = LibGLFW.get_window_attrib @handle, state
+      value == true.hash
     end
 
     # Sets the immutable move callback shim.
     private def set_move_callback
       callback = LibGLFW::Windowposfun.new do |handle, x, y|
-        win = Window.new(handle)
+        win = Window.from(handle)
         event = Event::WindowMove.new(win, x, y)
-        @@callback_registry[handle][:move].as(MoveCallback).try &.call(event)
+        win.move_callback.try &.call(event)
       end
       LibGLFW.set_window_pos_callback @handle, callback
     end
@@ -978,9 +874,9 @@ module CrystGLFW
     # Sets the immutable resize callback shim.
     private def set_resize_callback
       callback = LibGLFW::Windowsizefun.new do |handle, width, height|
-        win = Window.new(handle)
+        win = Window.from(handle)
         event = Event::WindowResize.new(win, width, height)
-        @@callback_registry[handle][:resize].as(ResizeCallback).try &.call(event)
+        win.resize_callback.try &.call(event)
       end
       LibGLFW.set_window_size_callback @handle, callback
     end
@@ -988,9 +884,9 @@ module CrystGLFW
     # Sets the immutable close callback shim.
     private def set_close_callback
       callback = LibGLFW::Windowclosefun.new do |handle|
-        win = Window.new(handle)
+        win = Window.from(handle)
         event = Event::WindowClose.new(win)
-        @@callback_registry[handle][:close].as(CloseCallback).try &.call(event)
+        win.close_callback.try &.call(event)
       end
       LibGLFW.set_window_close_callback @handle, callback
     end
@@ -998,9 +894,9 @@ module CrystGLFW
     # Sets the immutable refresh callback shim.
     private def set_refresh_callback
       callback = LibGLFW::Windowrefreshfun.new do |handle|
-        win = Window.new(handle)
+        win = Window.from(handle)
         event = Event::WindowRefresh.new(win)
-        @@callback_registry[handle][:refresh].as(RefreshCallback).try &.call(event)
+        win.refresh_callback.try &.call(event)
       end
       LibGLFW.set_window_refresh_callback @handle, callback
     end
@@ -1008,10 +904,10 @@ module CrystGLFW
     # Sets the immutable toggle focus callback shim.
     private def set_toggle_focus_callback
       callback = LibGLFW::Windowfocusfun.new do |handle, focused_code|
-        win = Window.new(handle)
-        focused? = focused_code == CrystGLFW[:true]
+        win = Window.from(handle)
+        focused? = focused_code == true.hash
         event = Event::WindowToggleFocus.new(win, focused?)
-        @@callback_registry[handle][:toggle_focus].as(ToggleFocusCallback).try &.call(event)
+        win.toggle_focus_callback.try &.call(event)
       end
       LibGLFW.set_window_focus_callback @handle, callback
     end
@@ -1019,10 +915,10 @@ module CrystGLFW
     # Sets the immutable toggle iconification callback shim.
     private def set_toggle_iconification_callback
       callback = LibGLFW::Windowiconifyfun.new do |handle, iconified_code|
-        win = Window.new(handle)
-        iconified? = iconified_code == CrystGLFW[:true]
+        win = Window.from(handle)
+        iconified? = iconified_code == true.hash
         event = Event::WindowToggleIconification.new(win, iconified?)
-        @@callback_registry[handle][:toggle_iconification].as(ToggleIconificationCallback).try &.call(event)
+        win.toggle_iconification_callback.try &.call(event)
       end
       LibGLFW.set_window_iconify_callback @handle, callback
     end
@@ -1030,20 +926,21 @@ module CrystGLFW
     # Sets the immutable framebuffer resize callback shim.
     private def set_framebuffer_resize_callback
       callback = LibGLFW::Framebuffersizefun.new do |handle, width, height|
-        win = Window.new(handle)
+        win = Window.from(handle)
         event = Event::WindowFramebufferResize.new(win, width, height)
-        @@callback_registry[handle][:framebuffer_resize].as(FramebufferResizeCallback).try &.call(event)
+        win.framebuffer_resize_callback.try &.call(event)
       end
       LibGLFW.set_framebuffer_size_callback @handle, callback
     end
 
     # Sets the immutable key callback shim.
     private def set_key_callback
-      callback = LibGLFW::Keyfun.new do |handle, key_code, scancode, action, modifiers|
-        win = Window.new(handle)
-        key = Key.new(key_code, scancode)
+      callback = LibGLFW::Keyfun.new do |handle, key_code, scancode, act, modifiers|
+        win = Window.from(handle)
+        key = Key.from(key_code, scancode)
+        action = Action.new(act)
         event = Event::WindowKey.new(win, key, action, modifiers)
-        @@callback_registry[handle][:key].as(KeyCallback).try &.call(event)
+        win.key_callback.try &.call(event)
       end
       LibGLFW.set_key_callback @handle, callback
     end
@@ -1051,20 +948,21 @@ module CrystGLFW
     # Sets the immutable character callback shim.
     private def set_char_callback
       callback = LibGLFW::Charmodsfun.new do |handle, char, modifiers|
-        win = Window.new(handle)
+        win = Window.from(handle)
         event = Event::WindowChar.new(win, char.chr, modifiers)
-        @@callback_registry[handle][:char].as(CharCallback).try &.call(event)
+        win.char_callback.try &.call(event)
       end
       LibGLFW.set_char_mods_callback @handle, callback
     end
 
     # Sets the immutable mouse button callback shim.
     private def set_mouse_button_callback
-      callback = LibGLFW::Mousebuttonfun.new do |handle, button, action, modifiers|
-        win = Window.new(handle)
+      callback = LibGLFW::Mousebuttonfun.new do |handle, button, act, modifiers|
+        win = Window.from(handle)
         mouse_button = MouseButton.new(button)
+        action = Action.new(act)
         event = Event::WindowMouseButton.new(win, mouse_button, action, modifiers)
-        @@callback_registry[handle][:mouse_button].as(MouseButtonCallback).try &.call(event)
+        win.mouse_button_callback.try &.call(event)
       end
       LibGLFW.set_mouse_button_callback @handle, callback
     end
@@ -1072,9 +970,9 @@ module CrystGLFW
     # Sets the immutable scroll callback shim.
     private def set_scroll_callback
       callback = LibGLFW::Scrollfun.new do |handle, x, y|
-        win = Window.new(handle)
+        win = Window.from(handle)
         event = Event::WindowScroll.new(win, x, y)
-        @@callback_registry[handle][:scroll].as(ScrollCallback).try &.call(event)
+        win.scroll_callback.try &.call(event)
       end
       LibGLFW.set_scroll_callback @handle, callback
     end
@@ -1082,11 +980,11 @@ module CrystGLFW
     # Sets the immutable cursor cross threshold callback shim.
     private def set_cursor_cross_threshold_callback
       callback = LibGLFW::Cursorenterfun.new do |handle, entered_code|
-        win = Window.new(handle)
+        win = Window.from(handle)
         cursor = win.cursor
-        entered = entered_code == CrystGLFW[:true]
+        entered = entered_code == true.hash
         event = Event::WindowCursorCrossThreshold.new(win, cursor, entered)
-        @@callback_registry[handle][:cursor_cross_threshold].as(CursorCrossThresholdCallback).try &.call(event)
+        win.cursor_cross_threshold_callback.try &.call(event)
       end
       LibGLFW.set_cursor_enter_callback @handle, callback
     end
@@ -1094,10 +992,10 @@ module CrystGLFW
     # Sets the immutable cursor move callback shim.
     private def set_cursor_move_callback
       callback = LibGLFW::Cursorposfun.new do |handle, x, y|
-        win = Window.new(handle)
+        win = Window.from(handle)
         cursor = win.cursor
         event = Event::WindowCursorMove.new(win, cursor, x, y)
-        @@callback_registry[handle][:cursor_move].as(CursorMoveCallback).try &.call(event)
+        win.cursor_move_callback.try &.call(event)
       end
       LibGLFW.set_cursor_pos_callback @handle, callback
     end
@@ -1105,32 +1003,38 @@ module CrystGLFW
     # Sets the immutable file drop callback shim.
     private def set_file_drop_callback
       callback = LibGLFW::Dropfun.new do |handle, count, raw_paths|
-        win = Window.new(handle)
+        win = Window.from(handle)
         paths = count.times.map { |i| String.new(raw_paths[i]) }
         event = Event::WindowFileDrop.new(win, paths.to_a)
-        @@callback_registry[handle][:file_drop].as(FileDropCallback).try &.call(event)
+        win.file_drop_callback.try &.call(event)
       end
       LibGLFW.set_drop_callback @handle, callback
     end
 
-    # Initializes the callback registry.
-    private def initialize_callbacks
-      @@callback_registry[@handle] = Hash(Symbol, WindowCallback).new
-    end
-
     # Defines all of the callback methods.
     macro define_callbacks(pairs)
-    {% for symbol, camel in pairs %}
-      define_callback({{symbol}}, {{camel}})
-    {% end %}
+      {% for symbol, camel in pairs %}
+        define_callback({{symbol}}, {{camel}})
+      {% end %}
+
+      {% for symbol, camel in pairs %}
+        define_callback_getter({{symbol}}, {{camel}})
+      {% end %}
     end
 
     # Defines a callback method.
     macro define_callback(symbol, camel)
-    def on_{{symbol.id}}(&callback : {{camel}}Callback)
-      set_{{symbol.id}}_callback unless @@callback_registry[@handle][{{symbol}}]?
-      @@callback_registry[@handle][{{symbol}}] = callback
+      def on_{{symbol.id}}(&callback : {{camel}}Callback)
+        set_{{symbol.id}}_callback if @{{symbol.id}}_callback.nil?
+        @{{symbol.id}}_callback = callback
+      end
     end
+
+    # Defines a protected callback getter.
+    macro define_callback_getter(symbol, camel)
+      protected def {{symbol.id}}_callback
+        @{{symbol.id}}_callback
+      end
     end
 
     # Call the define_callbacks macro.

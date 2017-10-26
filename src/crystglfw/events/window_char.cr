@@ -15,8 +15,8 @@ module CrystGLFW
     struct WindowChar < Any
       include Modifiers
 
-      getter window : CrystGLFW::Window
-      getter char : Char
+      getter window : Window
+      getter char   : Char
 
       # :nodoc:
       def initialize(window : Window, char : Char, modifiers : Int32)

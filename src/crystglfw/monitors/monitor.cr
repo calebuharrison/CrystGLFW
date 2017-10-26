@@ -10,10 +10,10 @@ module CrystGLFW
 
     # Sets the immutable monitor connection callback shim.
     private def self.set_toggle_connection_callback
-      callback = LibGLFW::Monitorfun.new do |handle, connected_code|
+      callback = LibGLFW::Monitorfun.new do |handle, connection_code|
         monitor = new(handle)
-        connected = connected_code == CrystGLFW[:connected]
-        event = Event::MonitorToggleConnection.new(monitor, connected)
+        connection_status = ConnectionStatus.new(connection_code)
+        event = Event::MonitorToggleConnection.new(monitor, connection_status)
         @@monitor_callback.try &.call(event)
       end
       LibGLFW.set_monitor_callback callback
@@ -45,8 +45,7 @@ module CrystGLFW
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def self.all : Array(Monitor)
       handles = LibGLFW.get_monitors(out count)
-      monitors = count.times.map { |i| new(handles[i]) }
-      monitors.to_a
+      count.times.map { |i| Monitor.new(handles[i]) }
     end
 
     # Returns the primary monitor, which is inferred by GLFW as the window that includes the task bar.
@@ -78,7 +77,7 @@ module CrystGLFW
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def position : NamedTuple(x: Int32, y: Int32)
       LibGLFW.get_monitor_pos(@handle, out x, out y)
-      {x: x, y: y}
+      { x: x, y: y }
     end
 
     # Returns the physical size of the monitor in millimeters.
@@ -97,7 +96,7 @@ module CrystGLFW
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def physical_size : NamedTuple(width: Int32, height: Int32)
       LibGLFW.get_monitor_physical_size(@handle, out width, out height)
-      {width: width, height: height}
+      { width: width, height: height }
     end
 
     # Returns the monitor's name, as set by the manufacturer.
@@ -122,8 +121,7 @@ module CrystGLFW
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def video_modes : Array(VideoMode)
       vid_modes = LibGLFW.get_video_modes(@handle, out count)
-      video_modes = count.times.map { |i| VideoMode.new(vid_modes + i) }
-      video_modes.to_a
+      count.times.map { |i| VideoMode.new(vid_modes + i) }
     end
 
     # Returns the monitor's current video mode.

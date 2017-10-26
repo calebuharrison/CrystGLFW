@@ -1,7 +1,7 @@
 require "lib_glfw"
 
 module CrystGLFW
-  struct Window
+  class Window
     # An Image object wraps an underlying GLFW Image and exposes its attributes.
     struct Image
       @image : LibGLFW::Image
@@ -27,19 +27,13 @@ module CrystGLFW
         @image.pixels = pixels
       end
 
-      # Returns the width of the image in pixels.
-      def width : Int32
-        @image.width
-      end
-
-      # Returns the height of the image in pixels.
-      def height : Int32
-        @image.height
+      def size : NamedTuple(width: Int32, height: Int32)
+        { width: @image.width, height: @image.height }
       end
 
       # Returns the pixel data of the image, arranged left-to-right, top-to-bottom.
-      def pixels : Array(UInt8)
-        Slice.new(@image.pixels, width * height).to_a
+      def pixels : Slice(UInt8)
+        Slice.new(@image.pixels, width * height)
       end
 
       # :nodoc:

@@ -5,40 +5,18 @@ module CrystGLFW
     struct WindowMouseButton < Any
       include Modifiers
 
-      @action_code : Int32
-
-      getter window : CrystGLFW::Window
+      getter window       : Window
       getter mouse_button : MouseButton
+      getter action       : Action
 
       # :nodoc:
-      def initialize(window : Window, mouse_button : MouseButton, action_code : Int32, modifiers : Int32)
-        @window = window
+      def initialize(window : Window, mouse_button : MouseButton, action : Action, modifiers : Int32)
+        @window       = window
         @mouse_button = mouse_button
-        @action_code = action_code
+        @action       = action
         set_modifiers modifiers
       end
 
-      # Returns true if the mouse button was pressed. False otherwise.
-      #
-      # ```
-      # window.on_mouse_button do |event|
-      #   puts "a mouse button was pressed." if event.press?
-      # end
-      # ```
-      def press?
-        @action_code == CrystGLFW[:press]
-      end
-
-      # Returns true if the mouse button was released. False otherwise.
-      #
-      # ```
-      # window.on_mouse_button do |event|
-      #   puts "a mouse button was released." if event.release?
-      # end
-      # ```
-      def release?
-        @action_code == CrystGLFW[:release]
-      end
     end
   end
 end
