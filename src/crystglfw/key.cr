@@ -140,8 +140,7 @@ module CrystGLFW
     @@scancodes = Hash(Key, Int32).new
 
     def self.from(code : Int32, scancode : Int32) : Key
-      @@scancodes[code] = scancode
-      Key.new(code)
+      Key.new(code).tap { |k| @@scancodes[k] = scancode }
     end
 
     def name : String
