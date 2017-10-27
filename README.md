@@ -48,7 +48,7 @@ CrystGLFW.run do
 
   # Configure the window to print its dimensions each time it is resized.
   window.on_resize do |event|
-    puts "Window resized to #{event.width}x#{event.height}"
+    puts "Window resized to #{event.size}"
   end
 
   # Make this window's OpenGL context the current drawing context.
