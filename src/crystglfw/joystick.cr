@@ -42,7 +42,7 @@ module CrystGLFW
     end
 
     def connected? : Bool
-      LibGLFW.joystick_present(self) == true.hash
+      LibGLFW.joystick_present(self) == 1
     end
 
     def buttons : Array(Bool)

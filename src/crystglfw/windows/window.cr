@@ -59,7 +59,7 @@ module CrystGLFW
       hints.each do |key, value|
         hint_value = nil
         if value.is_a? Bool
-          hint_value = value.hash
+          hint_value = value ? 1 : 0
         else
           hint_value = value
         end
@@ -136,7 +136,7 @@ module CrystGLFW
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def should_close? : Bool
-      LibGLFW.window_should_close(@handle) == true.hash
+      LibGLFW.window_should_close(@handle) == 1
     end
 
     # Marks this window for closing.
@@ -152,14 +152,14 @@ module CrystGLFW
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def should_close
-      LibGLFW.set_window_should_close @handle, true.hash
+      LibGLFW.set_window_should_close @handle, 1
     end
 
     # The exact opposite of `#should_close`.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def should_not_close
-      LibGLFW.set_window_should_close @handle, false.hash
+      LibGLFW.set_window_should_close @handle, 0
     end
 
     # Sets the window's title.
@@ -749,21 +749,21 @@ module CrystGLFW
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def sticky_keys? : Bool
       value = LibGLFW.get_input_mode @handle, Sticky::Keys
-      value == true.hash
+      value == 1
     end
 
     # Enables sticky keys.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def enable_sticky_keys
-      LibGLFW.set_input_mode @handle, Sticky::Keys, true.hash
+      LibGLFW.set_input_mode @handle, Sticky::Keys, 1
     end
 
     # Disables sticky keys.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def disable_sticky_keys
-      LibGLFW.set_input_mode @handle, Sticky::Keys, false.hash
+      LibGLFW.set_input_mode @handle, Sticky::Keys, 0
     end
 
     # Returns true if sticky mouse buttons are enabled. False otherwise.
@@ -771,21 +771,21 @@ module CrystGLFW
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def sticky_mouse_buttons? : Bool
       value = LibGLFW.get_input_mode @handle, Sticky::MouseButtons
-      value == true.hash
+      value == 1
     end
 
     # Enables sticky mouse buttons.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def enable_sticky_mouse_buttons
-      LibGLFW.set_input_mode @handle, Sticky::MouseButtons, true.hash
+      LibGLFW.set_input_mode @handle, Sticky::MouseButtons, 1
     end
 
     # Disables sticky mouse buttons.
     #
     # NOTE: This method must be called from within a `CrystGLFW#run` block definition.
     def disable_sticky_mouse_buttons
-      LibGLFW.set_input_mode @handle, Sticky::MouseButtons, false.hash
+      LibGLFW.set_input_mode @handle, Sticky::MouseButtons, 0
     end
 
     # Returns the contents of the system clipboard as a String.
@@ -857,8 +857,7 @@ module CrystGLFW
 
     # Checks a window attribute by label.
     private def check_state(state : State) : Bool
-      value = LibGLFW.get_window_attrib @handle, state
-      value == true.hash
+      LibGLFW.get_window_attrib(@handle, state) == 1
     end
 
     # Sets the immutable move callback shim.
@@ -905,7 +904,7 @@ module CrystGLFW
     private def set_toggle_focus_callback
       callback = LibGLFW::Windowfocusfun.new do |handle, focused_code|
         win = Window.from(handle)
-        focused? = focused_code == true.hash
+        focused? = focused_code == 1
         event = Event::WindowToggleFocus.new(win, focused?)
         win.toggle_focus_callback.try &.call(event)
       end
@@ -916,7 +915,7 @@ module CrystGLFW
     private def set_toggle_iconification_callback
       callback = LibGLFW::Windowiconifyfun.new do |handle, iconified_code|
         win = Window.from(handle)
-        iconified? = iconified_code == true.hash
+        iconified? = iconified_code == 1
         event = Event::WindowToggleIconification.new(win, iconified?)
         win.toggle_iconification_callback.try &.call(event)
       end
@@ -982,7 +981,7 @@ module CrystGLFW
       callback = LibGLFW::Cursorenterfun.new do |handle, entered_code|
         win = Window.from(handle)
         cursor = win.cursor
-        entered = entered_code == true.hash
+        entered = entered_code == 1
         event = Event::WindowCursorCrossThreshold.new(win, cursor, entered)
         win.cursor_cross_threshold_callback.try &.call(event)
       end
