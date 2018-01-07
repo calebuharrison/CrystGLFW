@@ -129,7 +129,7 @@ module CrystGLFW
 
     @@printable_keys = [
       Apostrophe, Comma, Minus, Period, Slash, Semicolon, Equal,
-      LeftBracket, RightBracket, Backslash, World1, World2, 
+      LeftBracket, RightBracket, Backslash, World1, World2,
       Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine,
       A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T,
       U, V, W, X, Y, Z, KP0, KP1, KP2, KP3, KP4, KP5, KP6, KP7,
@@ -144,7 +144,8 @@ module CrystGLFW
     end
 
     def name : String
-      candidate = LibGLFW.get_key_name(self.value, @@scancodes[self.value]?)
+      return "invalid-key" unless scancode = @@scancodes[self]?
+      candidate = LibGLFW.get_key_name(self.value, scancode)
       if candidate.null?
         Error::KeyNotPrintable.raise
       else
