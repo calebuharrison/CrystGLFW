@@ -904,8 +904,8 @@ module CrystGLFW
     private def set_toggle_focus_callback
       callback = LibGLFW::Windowfocusfun.new do |handle, focused_code|
         win = Window.from(handle)
-        focused? = focused_code == 1
-        event = Event::WindowToggleFocus.new(win, focused?)
+        focused = focused_code == 1
+        event = Event::WindowToggleFocus.new(win, focused)
         win.toggle_focus_callback.try &.call(event)
       end
       LibGLFW.set_window_focus_callback @handle, callback
@@ -915,8 +915,8 @@ module CrystGLFW
     private def set_toggle_iconification_callback
       callback = LibGLFW::Windowiconifyfun.new do |handle, iconified_code|
         win = Window.from(handle)
-        iconified? = iconified_code == 1
-        event = Event::WindowToggleIconification.new(win, iconified?)
+        iconified = iconified_code == 1
+        event = Event::WindowToggleIconification.new(win, iconified)
         win.toggle_iconification_callback.try &.call(event)
       end
       LibGLFW.set_window_iconify_callback @handle, callback
