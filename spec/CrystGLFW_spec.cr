@@ -32,7 +32,7 @@ describe CrystGLFW do
     end
     context "when GLFW is not initialized" do
       it "raises an exception" do
-        expect_raises do
+        expect_raises(Exception) do
           CrystGLFW.time
         end
       end
